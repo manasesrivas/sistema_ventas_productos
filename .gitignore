@@ -1,0 +1,10 @@
+/documentation
+.env
+.DS_Store
+db.sql
+
+
+datos/*
+negocio/*
+presentacion/admin/*
+public/img
