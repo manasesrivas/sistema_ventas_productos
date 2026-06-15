@@ -7,21 +7,21 @@ require_once __DIR__ . '/Conexion.php';
  * 
  * esta clase pertenese a la capa de datos.
  * se encarga de ejecutar las consultas sql relacionadas
- * con la tabla tbl_productos.
+ * con la tabla productos.
  */
 
 class ProductosDatos{
     public function listarProductos(){
         $conexion = new Conexion();
-        $conexion->query = "SELECT  tbl_productos.IdProducto, tbl_productos.NombreProducto, tbl_productos.Modelo,
-                                    tbl_productos.IdCategoria, tbl_categorias.NombreCategoria, tbl_productos.IdMarca,
-                                    tbl_marcas.NombreMarca, tbl_productos.PrecioVenta, tbl_productos.Caracteristicas,
-                                    tbl_productos.Existencias, tbl_productos.Imagen, tbl_productos.Eliminado
-                            FROM tbl_productos
-                            INNER JOIN tbl_categorias ON tbl_productos.IdCategoria = tbl_categorias.IdCategoria
-                            INNER JOIN tbl_marcas ON tbl_productos.IdMarca = tbl_marcas.IdMarca
-                            WHERE tbl_productos.Eliminado = 'N'
-                            ORDER BY tbl_productos.IdProducto DESC";
+        $conexion->query = "SELECT  productos.id_producto, productos.nombre_producto, 
+                                    productos.categoria_id, categorias.categoria, productos.marca_id,
+                                    tbl_marcas.marca, productos.precio,
+                                    productos.existencias, productos.imagen, productos.eliminado
+                            FROM productos
+                            INNER JOIN categorias ON productos.categoria_id = categorias.categoria_id
+                            INNER JOIN marcas ON productos.marca_id = tbl_marcas.marca_id
+                            WHERE productos.eliminado = 'N'
+                            ORDER BY productos.id_producto DESC";
         return $conexion->get_records();
     }
 
@@ -42,7 +42,7 @@ class ProductosDatos{
     /**
      * insertar un nuevo producto.
      * recibe los datos del producto desde la capa de negocio
-     * y ejecuta una consulta INSERT en la tabla tbl_productos
+     * y ejecuta una consulta INSERT en la tabla productos
      * 
      * @param array $producto datos del producto
      * @return bool retorna true si el negocio se inserta correctamente
@@ -51,20 +51,19 @@ class ProductosDatos{
     public function insertarProducto($producto){
         $conexion =new Conexion();
 
-        $conexion->query = "INSERT INTO tbl_productos ( NombreProducto, Modelo, IdCaractegoria, 
-                                        IdMarca, PrecioVenta, Caracteristicas, Existencias, Imagen, Eliminado)
-                            VALUES (:nombreProducto, :modelo, :idCategoria, :idMarca,
-                                    :precioVenta, :caracteristicas, :existencias, :imagen, 'N')";
+        $conexion->query = "INSERT INTO productos ( nombre_producto,  categoria_id, 
+                                        marca_id, precio, existencias, imagen, eliminado)
+                            VALUES (:nombre_producto, :categoria_id, :idMarca,
+                                    :precio, :existencias, :imagen, 'N')";
         return $conexion->execute_query(
             [
-                ':nombreProducto' => $producto['NombreProducto'],
+                ':nombre_producto' => $producto['nombre_producto'],
                 ':modelo' => $this->valorNulo($producto['Modelo']),
-                ':idCategoria' => $producto['IdCategoria'],
-                ':idMarca' => $producto['IdeMarca'],
-                ':precioVenta' => $producto['PrecioVenta'],
-                ':caracteristicas' => $this->valorNulo($producto['Caracteristicas']),
-                ':existencias' => $producto['Existencias'],
-                ':imagen' => $this->valorNulo($producto['Imagen'])
+                ':categoria_id' => $producto['categoria_id'],
+                ':marca_id' => $producto['marca_id'],
+                ':precio' => $producto['precio'],
+                ':existencias' => $producto['existencias'],
+                ':imagen' => $this->valorNulo($producto['imagen'])
             ]
         );
     }
@@ -72,40 +71,38 @@ class ProductosDatos{
     /**
  * Obtener un producto por su ID.
  *
- * Busca un producto específico usando el campo IdProducto.
+ * Busca un producto específico usando el campo id_producto.
  * Este método se utiliza principalmente para cargar los datos
  * en los formularios de edición y eliminación.
  *
- * @param int $idProducto Identificador del producto.
+ * @param int $id_producto Identificador del producto.
  * @return array|false Datos del producto encontrado o false si no existe.
  */
-public function obtenerProductoPorId($idProducto)
+public function obtenerProductoPorId($id_producto)
 {
     $conexion = new Conexion();
 
     $conexion->query = "SELECT
-                            tbl_productos.IdProducto,
-                            tbl_productos.NombreProducto,
-                            tbl_productos.Modelo,
-                            tbl_productos.IdCategoria,
-                            tbl_categorias.NombreCategoria,
-                            tbl_productos.IdMarca,
+                            productos.id_producto,
+                            productos.nombre_producto,
+                            productos.categoria_id,
+                            productos.marca_id,
                             tbl_marcas.NombreMarca,
-                            tbl_productos.PrecioVenta,
-                            tbl_productos.Caracteristicas,
-                            tbl_productos.Existencias,
-                            tbl_productos.Imagen,
-                            tbl_productos.Eliminado
-                        FROM tbl_productos
-                        INNER JOIN tbl_categorias
-                            ON tbl_productos.IdCategoria = tbl_categorias.IdCategoria
+                            productos.PrecioVenta,
+                            productos.Caracteristicas,
+                            productos.Existencias,
+                            productos.Imagen,
+                            productos.Eliminado
+                        FROM productos
+                        INNER JOIN categorias
+                            ON productos.categoria_id = categorias.categoria_id
                         INNER JOIN tbl_marcas
-                            ON tbl_productos.IdMarca = tbl_marcas.IdMarca
-                        WHERE tbl_productos.IdProducto = :idProducto
-                        AND tbl_productos.Eliminado = 'N'";
+                            ON productos.marca_id = tbl_marcas.marca_id
+                        WHERE productos.id_producto = :id_producto
+                        AND productos.Eliminado = 'N'";
 
     return $conexion->get_record([
-        ':idProducto' => $idProducto
+        ':id_producto' => $id_producto
     ]);
 }
 }
