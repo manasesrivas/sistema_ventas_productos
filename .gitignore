@@ -4,7 +4,7 @@
 db.sql
 
 
-datos/*
-negocio/*
-presentacion/admin/*
+datos/productoNegocio
+negocio/productosNegocio
+presentacion/admin/productos
 public/img
