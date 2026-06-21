@@ -48,53 +48,58 @@ class ProductoNegocio{
     
     private function limpiarDatos($datos){
         return [
-            'NombreProducto' => trim($datos['NombreProducto']),
-            'Modelo' => isset( $datos['Modelo']) ? trim($datos['Modelo']) : '',
-            'IdCategoria' => (int) $datos['IdCategoria'],
-            'IdMarca' => (int) $datos['IdMarca'],
-            'PrecioVenta' => number_format((float) $datos['PrecioVenta'], 2, '.', ''),
-            'Caracteristicas' => isset($datos['Caracteristicas']) ? trim($datos['Caracteristicas']) : '',
-            'Existencias' => (int) $datos['Existencias'],
-            'Imagen' => isset($datos['Imagen']) ? trim($datos['Imgen']): 'sin-imagen.png'
+            'nombre_producto' => trim($datos['nombre_producto']),
+            'modelo' => isset( $datos['modelo']) ? trim($datos['modelo']) : '',
+            'categoria_id' => (int) $datos['categoria_id'],
+            'marca_id' => (int) $datos['marca_id'],
+            'precio' => number_format((float) $datos['precio'], 2, '.', ''),
+            'caracteristicas' => isset($datos['ccaracteristicas']) ? trim($datos['caracteristicas']) : '',
+            'stock' => (int) $datos['stock'],
+            'imagen' => isset($datos['imagen']) ? trim($datos['imagen']): 'sin-imagen.png'
         ];
     }
 
     private function validarProducto($datos){
         $errores = [];
 
-        if(!isset($datos['NombreProducto']) || empty( trim($datos['NombreProducto'])) ){
+
+        if(!isset($datos['nombre_producto']) || empty( trim($datos['nombre_producto'])) ){
             $errores[] = "El nombre del prodcuto es obligatorio.";
         }
 
-        if(isset($datos['NombreProducto']) && strlen( trim($datos['NombreProducto']) ) > 255 ){
+        if(isset($datos['nombre_producto']) && strlen( trim($datos['nombre_producto']) ) > 255 ){
             $errores[] = "El nombre del producto no debe superar los 255 caracteres";
         }
 
-        if(!empty($datos['Modelo']) && strlen( trim($datos['Modelo'])) > 255 ){
+        if(!empty($datos['modelo']) && strlen( trim($datos['modelo'])) > 255 ){
             $errores[] = "El modelo no debe superar los 255 caracteres.";
         }
 
-        if(!isset($datos['IdCategoria']) || empty($datos['IdCategoria']) || !is_numeric($datos['IdCategoria'])){
+        if(!isset($datos['categoria_id']) || empty($datos['categoria_id']) || !is_numeric($datos['categoria_id'])){
             $errores[] = "Debe seleccionar una categoria valida.";
         }
 
-        if(!isset($datos['IdMarca']) || empty($datos['IdMarca']) || !is_numeric($datos['PrecioVenta'])){
+        if(!isset($datos['marca_id']) || empty($datos['marca_id']) || !is_numeric($datos['marca_id'])){
             $errores[] = 'Debe seleccionar una marca valida.';
         }
         
-        if(!isset($datos['PrecioVenta']) || $datos['PrecioVenta'] === '' || !is_numeric($datos['PrecioVenta'])){
+        if(!isset($datos['precio']) || $datos['precio'] === '' || !is_numeric($datos['precio'])){
             $errores[] = "El Precio de venta es obligatorio y debe ser numerico";
-        }elseif((float) $datos['PrecioVenta'] <= 0){
+        }elseif((float) $datos['precio'] <= 0){
             $errores[] = "El precio de venta debe ser mayor que cero.";
         }
 
-        if(!isset($datos['Existencias']) || $datos['Existencias'] === '' || !is_numeric($datos['Existencias'])){
+        if(strlen(trim($datos['caracteristicas'])) > 255) {
+            $errores[] = 'caracteristicas no debe de contener más de 255 caracteres';
+        }
+
+        if(!isset($datos['stock']) || $datos['stock'] === '' || !is_numeric($datos['stock'])){
             $errores[] = "las existencias son obligatorias y debe ser numericas.";
-        }elseif((int) $datos['Existencias'] < 0){
+        }elseif((int) $datos['stock'] < 0){
             $errores[] = 'Las existencias no pueden ser negativas.';
         }
 
-        if(!empty($datos['Imagen']) && strlen(trim($datos['Imagen'])) > 255 ){
+        if(!empty($datos['imagen']) && strlen(trim($datos['imagen'])) > 255 ){
             $errores[] = "El nombre de la imagen no debe superar los 255 caracteres.";
         }
 

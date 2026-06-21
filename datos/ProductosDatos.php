@@ -13,13 +13,13 @@ require_once __DIR__ . '/Conexion.php';
 class ProductosDatos{
     public function listarProductos(){
         $conexion = new Conexion();
-        $conexion->query = "SELECT  productos.id_producto, productos.nombre_producto, 
+        $conexion->query = "SELECT productos.id_producto, productos.nombre_producto, 
                                     productos.categoria_id, categorias.categoria, productos.marca_id,
-                                    tbl_marcas.marca, productos.precio,
-                                    productos.existencias, productos.imagen, productos.eliminado
+                                    marcas.marca, productos.precio,
+                                    productos.stock, productos.imagen, productos.eliminado
                             FROM productos
-                            INNER JOIN categorias ON productos.categoria_id = categorias.categoria_id
-                            INNER JOIN marcas ON productos.marca_id = tbl_marcas.marca_id
+                            INNER JOIN categorias ON productos.categoria_id = categorias.id_categoria
+                            INNER JOIN marcas ON productos.marca_id = marcas.id_marca
                             WHERE productos.eliminado = 'N'
                             ORDER BY productos.id_producto DESC";
         return $conexion->get_records();
@@ -51,18 +51,18 @@ class ProductosDatos{
     public function insertarProducto($producto){
         $conexion =new Conexion();
 
-        $conexion->query = "INSERT INTO productos ( nombre_producto,  categoria_id, 
-                                        marca_id, precio, existencias, imagen, eliminado)
-                            VALUES (:nombre_producto, :categoria_id, :idMarca,
-                                    :precio, :existencias, :imagen, 'N')";
+        $conexion->query = "INSERT INTO productos ( nombre_producto, marca_id, precio, categoria_id,
+                                                    stock, imagen, modelo, caracteristicas, eliminado)
+                            VALUES (:nombre_producto, :marca_id, :precio, :categoria_id, :stock, :imagen, :modelo, :caracteristicas, 'N')";
         return $conexion->execute_query(
             [
                 ':nombre_producto' => $producto['nombre_producto'],
-                ':modelo' => $this->valorNulo($producto['Modelo']),
+                ':modelo' => $this->valorNulo($producto['modelo']),
                 ':categoria_id' => $producto['categoria_id'],
                 ':marca_id' => $producto['marca_id'],
                 ':precio' => $producto['precio'],
-                ':existencias' => $producto['existencias'],
+                ':caracteristicas' => $this->valorNulo($producto['caracteristicas']),
+                ':stock' => $producto['stock'],
                 ':imagen' => $this->valorNulo($producto['imagen'])
             ]
         );
@@ -87,19 +87,18 @@ public function obtenerProductoPorId($id_producto)
                             productos.nombre_producto,
                             productos.categoria_id,
                             productos.marca_id,
-                            tbl_marcas.NombreMarca,
-                            productos.PrecioVenta,
-                            productos.Caracteristicas,
-                            productos.Existencias,
-                            productos.Imagen,
-                            productos.Eliminado
+                            marcas.marca,
+                            productos.precio,
+                            productos.stock,
+                            productos.imagen,
+                            productos.eliminado
                         FROM productos
                         INNER JOIN categorias
                             ON productos.categoria_id = categorias.categoria_id
                         INNER JOIN tbl_marcas
-                            ON productos.marca_id = tbl_marcas.marca_id
+                            ON productos.marca_id = marca.id_marca
                         WHERE productos.id_producto = :id_producto
-                        AND productos.Eliminado = 'N'";
+                        AND productos.eliminado = 'N'";
 
     return $conexion->get_record([
         ':id_producto' => $id_producto

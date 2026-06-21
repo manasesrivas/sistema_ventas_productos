@@ -1,8 +1,8 @@
 <?php
 
 require_once __DIR__ . '/../../../negocio/productoNegocio.php';
-require_once __DIR__ . '/../../../negocio/CategoriaNegocio.php';
-require_once __DIR__ . '/../../../negocio/MarcaNegocio.php';
+// require_once __DIR__ . '/../../../negocio/CategoriaNegocio.php';
+// require_once __DIR__ . '/../../../negocio/MarcaNegocio.php';
 
 $productoNegocio = new ProductoNegocio();
 // $categoriaNegocio = new CategoriaNegocio();
@@ -16,28 +16,28 @@ $productoNegocio = new ProductoNegocio();
 $errores = [];
 
 $datos = [
-    'NombreProducto' => '',
-    'Modelo' => '',
-    'IdCategoria' => '',
-    'IdMarca' => '',
-    'PrecioVenta' => '',
-    'Caracteristicas' => '',
-    'Existencias' => '',
-    'Imagen' => 'sin-imagen.png'
+    'nombre_producto' => '',
+    'modelo' => '',
+    'categoria_id' => '',
+    'marca_id' => '',
+    'precio' => '',
+    'caracteristicas' => '',
+    'stock' => '',
+    'imagen' => 'sin-imagen.png'
 ];
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $datos = [
-        'NombreProducto' => $_POST['NombreProducto'] ?? '',
-        'Modelo'         => $_POST['Modelo'] ?? '',
-        'IdCategoria'    => $_POST['IdCategoria'] ?? '',
-        'IdMarca'        => $_POST['IdMarca'] ?? '',
-        'PrecioVenta'    => $_POST['PrecioVenta'] ?? '',
-        'Caracteristicas'=> $_POST['Caracteristicas'] ?? '',
-        'Existencias'    => $_POST['Existencias'] ?? '',
-        'Imagen'         => procesarImagen($_FILES['Imagen'] ?? null, $errores)
+        'nombre_producto' => $_POST['NombreProducto'] ?? '',
+        'modelo'         => $_POST['Modelo'] ?? '',
+        'categoria_id'    => $_POST['IdCategoria'] ?? '',
+        'marca_id'        => $_POST['IdMarca'] ?? '',
+        'precio'    => $_POST['PrecioVenta'] ?? '',
+        'caracteristicas'=> $_POST['Caracteristicas'] ?? '',
+        'stock'    => $_POST['Existencias'] ?? '',
+        'imagen'         => procesarImagen($_FILES['Imagen'] ?? null, $errores)
     ];
 
     if (empty($errores)) {
@@ -118,6 +118,7 @@ function procesarImagen($archivo, &$errores)
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../../public/bootstrap/css/bootstrap.min.css">
     <title>Registrar producto</title>
 </head>
 <body class="bg-light">
@@ -153,6 +154,7 @@ function procesarImagen($archivo, &$errores)
                         <label class="form-label">Categoría</label>
                         <select name="IdCategoria" class="form-select">
                             <option value="">Seleccione una categoría</option>
+                            <option value="1" selected>Teclados</option>
                             <?php // foreach ($categorias as $categoria): ?>
                                 <option value="<?php // echo mostrarValor($categoria['IdCategoria']); ?>">
                                     <?php // echo mostrarValor($categoria['NombreCategoria']); ?>
@@ -165,6 +167,7 @@ function procesarImagen($archivo, &$errores)
                         <label class="form-label">Marca</label>
                         <select name="IdMarca" class="form-select">
                             <option value="">Seleccione una marca</option>
+                            <option value="1" selected>HP</option>
                             <?php //foreach ($marcas as $marca): ?>
                                 <option value="<?php //echo mostrarValor($marca['IdMarca']); ?>">
                                     <?php //echo mostrarValor($marca['NombreMarca']); ?>
