@@ -69,25 +69,25 @@ function mostrarValor($valor)
                     <?php foreach($productos as $producto): ?>
                         <tr>
                             <td>
-                                <?php echo mostrarValor($producto['IdProducto']); ?>
+                                <?php echo mostrarValor($producto['id_producto']); ?>
                             </td>
                             <td>
-                                <img src="../../../public/img/productos/<?php echo mostrarValor($producto['Image'] ?? 'sin-imagen.png'); ?>" alt="Imagen del producto"
+                                <img src="../../../public/img/productos/<?php echo mostrarValor($producto['imagen'] ?? 'sin-imagen.png'); ?>" alt="Imagen del producto"
                                 class="img-thumbnail"
                                 style="width: 70px; height: 70px; object-fit: cover;">
                             </td>
 
-                            <td><?php echo mostrarValor($producto['NombreProducto']); ?></td>
-                            <td><?php echo mostrarValor($producto['Modelo']); ?></td>
-                            <td><?php echo mostrarValor($producto['NombreCategoria']); ?></td>
-                            <td><?php echo mostrarValor($producto['NombreMarca']); ?></td>
-                            <td><?php echo number_format((float)$producto['PrecioVenta'], 2); ?></td>
-                            <td><?php echo mostrarValor($producto['existencias']); ?></td>
+                            <td><?php echo mostrarValor($producto['nombre_producto']); ?></td>
+                            <td><?php echo mostrarValor($producto['modelo']); ?></td>
+                            <td><?php echo mostrarValor($producto['categoria']); ?></td>
+                            <td><?php echo mostrarValor($producto['marca']); ?></td>
+                            <td><?php echo number_format((float)$producto['precio'], 2); ?></td>
+                            <td><?php echo mostrarValor($producto['stock']); ?></td>
                             <td>
-                                <a href="editar.php?id=<?php echo mostrarValor($producto['IdProducto']); ?>"
+                                <a href="editar.php?id=<?php echo mostrarValor($producto['id_producto']); ?>"
                                 class="btn btn-warning btn-sm">Editar</a>
-                                <a href="eliminar.php?id=<?php echo mostrarValor($producto['IdProducto']); ?>"
-                                class="btn btn-darnger btn-sm">Eliminar</a>
+                                <a href="eliminar.php?id=<?php echo mostrarValor($producto['id_producto']); ?>"
+                                class="btn btn-danger btn-sm">Eliminar</a>
                             </td>
                         </tr>
                     <?php endforeach; ?>

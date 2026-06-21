@@ -13,7 +13,7 @@ require_once __DIR__ . '/Conexion.php';
 class ProductosDatos{
     public function listarProductos(){
         $conexion = new Conexion();
-        $conexion->query = "SELECT productos.id_producto, productos.nombre_producto, 
+        $conexion->query = "SELECT productos.id_producto, productos.nombre_producto, productos.modelo,
                                     productos.categoria_id, categorias.categoria, productos.marca_id,
                                     marcas.marca, productos.precio,
                                     productos.stock, productos.imagen, productos.eliminado
