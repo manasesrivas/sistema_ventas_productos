@@ -69,39 +69,85 @@ class ProductosDatos{
     }
 
     /**
- * Obtener un producto por su ID.
- *
- * Busca un producto específico usando el campo id_producto.
- * Este método se utiliza principalmente para cargar los datos
- * en los formularios de edición y eliminación.
- *
- * @param int $id_producto Identificador del producto.
- * @return array|false Datos del producto encontrado o false si no existe.
- */
-public function obtenerProductoPorId($id_producto)
-{
-    $conexion = new Conexion();
+     * Obtener un producto por su ID.
+     *
+     * Busca un producto específico usando el campo id_producto.
+     * Este método se utiliza principalmente para cargar los datos
+     * en los formularios de edición y eliminación.
+     *
+     * @param int $id_producto Identificador del producto.
+     * @return array|false Datos del producto encontrado o false si no existe.
+     */
+    public function obtenerProductoPorId($id_producto)
+    {
+        $conexion = new Conexion();
 
-    $conexion->query = "SELECT
-                            productos.id_producto,
-                            productos.nombre_producto,
-                            productos.categoria_id,
-                            productos.marca_id,
-                            marcas.marca,
-                            productos.precio,
-                            productos.stock,
-                            productos.imagen,
-                            productos.eliminado
-                        FROM productos
-                        INNER JOIN categorias
-                            ON productos.categoria_id = categorias.categoria_id
-                        INNER JOIN tbl_marcas
-                            ON productos.marca_id = marca.id_marca
-                        WHERE productos.id_producto = :id_producto
-                        AND productos.eliminado = 'N'";
+        $conexion->query = "SELECT
+                                productos.id_producto,
+                                productos.nombre_producto,
+                                productos.modelo,
+                                productos.marca_id,
+                                marcas.marca,
+                                productos.categoria_id,
+                                categorias.categoria,
+                                productos.precio,
+                                productos.stock,
+                                productos.imagen,
+                                productos.caracteristicas,
+                                productos.eliminado
+                            FROM productos
+                            INNER JOIN categorias
+                                ON productos.categoria_id = categorias.id_categoria
+                            INNER JOIN marcas
+                                ON productos.marca_id = marcas.id_marca
+                            WHERE productos.id_producto = :id_producto
+                            AND productos.eliminado = 'N'";
 
-    return $conexion->get_record([
-        ':id_producto' => $id_producto
-    ]);
-}
+        return $conexion->get_record([
+            ':id_producto' => $id_producto
+        ]);
+    }
+
+    public function actualizarProducto($producto){
+        $conexion = new Conexion();
+        $conexion->query = "UPDATE productos
+                            SET nombre_producto = :nombre_producto, 
+                            marca_id = :marca_id,
+                            precio = :precio, 
+                            categoria_id = :categoria_id,
+                            stock = :stock,
+                            imagen = :imagen,
+                            modelo = :modelo,
+                            caracteristicas = :caracteristicas
+                            WHERE id_producto = :id_producto";
+        
+        return $conexion->execute_query(
+            [
+                ':nombre_producto' => $producto['nombre_producto'],
+                ':marca_id' => $producto['marca_id'],
+                ':precio' => $producto['precio'],
+                ':categoria_id' => $producto['categoria_id'],
+                ':stock' => $producto['stock'],
+                ':imagen' => $this->valorNulo($producto['imagen']),
+                ':modelo' => $producto['modelo'],
+                ':caracteristicas' => $this->valorNulo($producto['caracteristicas']),
+                ':id_producto' => $producto['id_producto']
+            ]
+        );
+        
+    }
+
+    public function eliminarProducto($id_producto){
+        $conexion = new Conexion();
+
+        $conexion->query = "UPDATE productos
+                            SET eliminado = 'S'
+                            WHERE id_producto = :id_producto";
+
+        return $conexion->execute_query(
+            [
+                ':id_producto' => $id_producto
+            ]
+        );
+    }
 }

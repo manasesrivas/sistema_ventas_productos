@@ -130,9 +130,58 @@ class ProductoNegocio{
 
         return [
             'exito' => $resultado,
-            'mensaje' => $resultado ? 'Producto registrado correctamente. ' : 'No se puedo registrar el producto'
+            'mensaje' => $resultado ? 'Producto registrado correctamente.' : 'No se puedo registrar el producto'
         ];
     }
+
+
+    public function obtenerProductoPorId($idProducto){
+        if(!is_numeric($idProducto) || $idProducto <= 0) return null;
+
+        return $this->productoDatos->obtenerProductoPorId($idProducto);
+    }
         
+    public function actualizarProducto($datos){
+        $errores = $this->validarProducto($datos);
+
+        if(!isset($datos['id_producto']) || empty($datos['id_producto'])){
+            $errores[] = "El identificacdor del producto es obligatorio.";
+        }
+
+        if(!empty($errores)){
+            return [
+                'exito' => false,
+                'errores' => $errores
+            ];
+        }
+
+        $producto = $this->limpiarDatos($datos);
+        $producto['id_producto'] = (int) $datos['id_producto'];
+
+        $resultado = $this->productoDatos->actualizarProducto($producto);
+
+        return [
+            'exito' => $resultado,
+            'mensaje' => $resultado ? 'Pruducto actualizado correcctamente.' : 'No se puedo actualizar el producto'
+        ];
+        
+        
+    }
+
+    public function eliminarProducto($id_producto){
+        if(!is_numeric($id_producto) || $id_producto <= 0){
+            return [
+                'exito' => false,
+                'mensaje' => 'El identificador del producto no es válido.'.$id_producto
+            ];
+        }
+
+        $resultado = $this->productoDatos->eliminarProducto($id_producto);
+
+        return [
+            'exito' => $resultado,
+            'mensaje' => $resultado ? 'Producto eliminado correctamente.' : 'No se pudo eliminar el producto.'
+        ];
+    }
 
 }
