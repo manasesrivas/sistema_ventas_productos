@@ -1,19 +1,22 @@
 <?php
 
 require_once __DIR__ . '/../datos/VentaDatos.php';
+require_once __DIR__ . '/DetalleVentaNegocio.php';
 
-class VentasNegocio
+class VentaNegocio
 {
     private $ventaDatos;
+    private $detalleVentaNegocio;
     private $IVA = 0.13;
 
     public function __construct()
     {
         $this->ventaDatos = new VentaDatos();
+        $this->detalleVentaNegocio = new DetalleVentaNegocio();
     }
-
-    //--errores-
-    private function validarVenta($datos)
+    
+    //--errores--
+    private function validarVenta($datos, $productos)
     {
         $errores = [];
 
@@ -28,10 +31,11 @@ class VentasNegocio
         if (empty($productos) || !is_array($productos)) {
             $errores[] = "Debe agregar al menos un producto.";
         }
+
         return $errores;
     }
 
-    //--Total-
+    //--Total--
     public function calcularTotales($productos)
     {
         $subtotal = 0;
@@ -50,10 +54,10 @@ class VentasNegocio
         ];
     }
 
-    //--crear-
+    //--crear--
     public function crearVenta($datos, $productos)
     {
-        $errores = $this->validarVenta($datos);
+        $errores = $this->validarVenta($datos, $productos);
 
         if (!empty($errores)) {
             return ['exito' => false, 'errores' => $errores];
@@ -72,18 +76,38 @@ class VentasNegocio
             return ['exito' => false, 'mensaje' => 'No se pudo registrar la venta.'];
         }
 
+        $id_venta = $this->ventaDatos->obtenerUltimoId();
+
+        $erroresDetalle = [];
+
+        foreach ($productos as $producto) {
+            $resultadoDetalle = $this->detalleVentaNegocio->registrarDetalle($id_venta, $producto);
+
+            if (!$resultadoDetalle['exito']) {
+                $erroresDetalle[] = $resultadoDetalle['errores'] ?? $resultadoDetalle['mensaje'];
+            }
+        }
+
+        if (!empty($erroresDetalle)) {
+            return [
+                'exito'    => false,
+                'mensaje'  => 'La venta se registró pero hubo errores en el detalle.',
+                'id_venta' => $id_venta,
+                'errores'  => $erroresDetalle
+            ];
+        }
+
         return [
             'exito'    => true,
             'mensaje'  => 'Venta registrada correctamente.',
-            'id_venta' => $this->ventaDatos->obtenerUltimoId(),
+            'id_venta' => $id_venta,
             'totales'  => $totales
         ];
     }
 
-    //--listar-
+    //--listar--
     public function listarVentas()
     {
         return $this->ventaDatos->listarVentas();
     }
-
 }

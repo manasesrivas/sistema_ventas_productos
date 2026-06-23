@@ -12,6 +12,7 @@ class Conexion{
 
     public $query;
     public $record_count;
+    public $ultimo_id;          //nueva propiedad
 
     public function __construct()
     {
@@ -55,6 +56,7 @@ class Conexion{
         try{
             $stmt = $this->create_connection()->prepare($this->query);
             $result = $stmt->execute($params);
+            $this->ultimo_id = $this->connection->lastInsertId();   //capturar antes de cerrar
             $this->close_connection();
             return $result;
         } catch(PDOException $e){

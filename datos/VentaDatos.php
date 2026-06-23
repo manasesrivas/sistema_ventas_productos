@@ -20,6 +20,16 @@ class VentaDatos
         return $this->conexion->get_records();
     }
 
+    //--obtener una venta por id--
+    public function obtenerPorId($id_venta)
+    {
+        $this->conexion->query = "SELECT id_venta, fecha_venta, total,
+                                  descuento_id, cliente_id, usuario_id
+                                  FROM ventas
+                                  WHERE id_venta = ?";
+        return $this->conexion->get_record([$id_venta]);
+    }
+
     //--Inertar
     public function insertarVenta($venta)
     {
@@ -31,5 +41,11 @@ class VentaDatos
             $venta['cliente_id'],
             $venta['usuario_id']
         ]);
+    }
+
+     //--obtener último id insertado--
+    public function obtenerUltimoId()
+    {
+        return $this->conexion->ultimo_id;
     }
 }

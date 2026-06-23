@@ -1,15 +1,17 @@
 <?php
 
 require_once __DIR__ . '/../../../negocio/VentaNegocio.php';
-
 require_once __DIR__ . '/../../../negocio/ClienteNegocio.php';
-require_once __DIR__ . '/../../../negocio/UsuarioNegocio.php';
+//require_once __DIR__ . '/../../../negocio/ProductoNegocio.php';
+// require_once __DIR__ . '/../../../negocio/UsuarioNegocio.php';
 
-$ventasNegocio  = new VentasNegocio();
+$ventaNegocio  = new VentaNegocio();
 $clienteNegocio = new ClienteNegocio();
-$usuarioNegocio = new UsuarioNegocio();
+// $usuarioNegocio = new UsuarioNegocio();
+//$productoNegocio = new ProductoNegocio();
 
 $errores = [];
+$clientePreseleccionado = ''; 
 
 $datos = [
     'cliente_id'   => '',
@@ -17,42 +19,72 @@ $datos = [
     'descuento_id' => ''
 ];
 
-$productos = [];
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    foreach ($_POST['producto_id'] as $i => $id) {
+        $productosnew[] = [
+            'id_producto' => $id,
+            'precio' => $_POST['precio'][$i],
+            'cantidad' => $_POST['cantidad'][$i]
+        ];
+    }
+    }
+
+
+
     $datos = [
         'cliente_id'   => $_POST['cliente_id']   ?? '',
         'usuario_id'   => $_POST['usuario_id']   ?? '',
         'descuento_id' => $_POST['descuento_id'] ?? null
     ];
 
-    $productos = [];
-    if (!empty($_POST['producto_id'])) {
-        foreach ($_POST['producto_id'] as $i => $pid) {
-            $productos[] = [
-                'producto_id' => $pid,
-                'precio'      => $_POST['precio'][$i]   ?? 0,
-                'cantidad'    => $_POST['cantidad'][$i] ?? 0
-            ];
-        }
-    }
 
-    $resultado = $ventasNegocio->crearVenta($datos, $productos);
+    $resultado = $ventaNegocio->crearVenta($datos, $productosnew);
 
     if ($resultado['exito']) {
         header("Location: listar.php?mensaje=creado");
         exit;
     } else {
-        $errores = $resultado['errores'];
+        // puede venir como 'errores' (array) o 'mensaje' (string), según el punto de fallo
+    if (!empty($resultado['errores'])) {
+        $errores = aplanarErrores($resultado['errores']);
+    } elseif (!empty($resultado['mensaje'])) {
+        $errores = [$resultado['mensaje']];
+    } else {
+        $errores = ['Ocurrió un error inesperado al registrar la venta.'];
     }
 }
 
 $clientes = $clienteNegocio->listarClientes();
-$usuarios = $usuarioNegocio->listarUsuarios();
+//$todosLosProductos = $productoNegocio->listarProductos();
+//$usuarios = $usuarioNegocio->listarUsuarios();
+// TEMPORAL: usuarios de prueba hasta que exista UsuarioNegocio
+$usuarios = [
+    ['id_usuario' => 1, 'nombre_usuario' => 'Usuario de prueba']
+];
+$todosLosProductos = [
+    ['id_producto' => 1, 'nombre_producto' => 'Laptop HP', 'precio' => 500.00],
+    ['id_producto' => 2, 'nombre_producto' => 'Mouse Logitech', 'precio' => 25.00],
+    ['id_producto' => 3, 'nombre_producto' => 'Teclado Genius', 'precio' => 15.00],
+];
 
 function mostrarValor($valor)
 {
     return htmlspecialchars($valor, ENT_QUOTES, 'UTF-8');
+}
+
+function aplanarErrores($errores)
+{
+    $planos = [];
+
+    foreach ($errores as $error) {
+        if (is_array($error)) {
+            $planos = array_merge($planos, $error);
+        } else {
+            $planos[] = $error;
+        }
+    }
+
+    return $planos;
 }
 ?>
 
@@ -84,17 +116,23 @@ function mostrarValor($valor)
             <form method="POST" action="crear.php">
 
                 <!--CLIENTE-->
-                <div class="mb-3">
-                    <label for="cliente_id" class="form-label">Cliente</label>
-                    <select name="cliente_id" id="cliente_id" class="form-select">
-                        <option value="">Seleccione un cliente</option>
-                        <?php foreach ($clientes as $cliente): ?>
-                            <option value="<?php echo mostrarValor($cliente['id_cliente']); ?>"
-                                <?php echo $datos['cliente_id'] == $cliente['id_cliente'] ? 'selected' : ''; ?>>
-                                <?php echo mostrarValor($cliente['nombre_cliente']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                <div class="mb-3 position-relative">
+                    <label for="clienteBusqueda" class="form-label">Cliente</label>
+                    <input type="text" id="clienteBusqueda" class="form-control"
+                           placeholder="Buscar por nombre o DUI..."
+                           autocomplete="off"
+                           value="<?php echo mostrarValor($clientePreseleccionado); ?>">
+
+                    <!--input oculto: es el que realmente se envía con el formulario-->
+                    <input type="hidden" name="cliente_id" id="cliente_id"
+                           value="<?php echo mostrarValor($datos['cliente_id']); ?>">
+
+                    <!--lista de sugerencias que aparece mientras se escribe-->
+                    <ul id="listaClientes" class="list-group position-absolute z-3"
+                        style="display:none; max-height:200px; overflow-y:auto; width:100%;"></ul>
+
+                    <!--confirmación visual de que se seleccionó un cliente-->
+                    <small id="clienteSeleccionado" class="text-success mt-1 d-block"></small>
                 </div>
 
                 <!--USUARIO-->
@@ -118,44 +156,41 @@ function mostrarValor($valor)
                            value="<?php echo mostrarValor($datos['descuento_id'] ?? ''); ?>">
                 </div>
 
-                <!--PRODUCTOS-->
-                <hr>
-                <h5>Productos</h5>
-                <table class="table table-bordered" id="tablaProductos">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Producto ID</th>
-                            <th>Precio</th>
-                            <th>Cantidad</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody id="cuerpoProductos">
-                        <?php if (!empty($productos)): ?>
-                            <?php foreach ($productos as $prod): ?>
-                            <tr>
-                                <td><input type="number" name="producto_id[]" class="form-control"
-                                           value="<?php echo mostrarValor($prod['producto_id']); ?>"></td>
-                                <td><input type="number" step="0.01" name="precio[]" class="form-control precio"
-                                           value="<?php echo mostrarValor($prod['precio']); ?>"></td>
-                                <td><input type="number" name="cantidad[]" class="form-control cantidad"
-                                           value="<?php echo mostrarValor($prod['cantidad']); ?>"></td>
-                                <td><button type="button" class="btn btn-danger btn-sm btnEliminar">X</button></td>
-                            </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td><input type="number" name="producto_id[]" class="form-control"></td>
-                                <td><input type="number" step="0.01" name="precio[]" class="form-control precio"></td>
-                                <td><input type="number" name="cantidad[]" class="form-control cantidad"></td>
-                                <td><button type="button" class="btn btn-danger btn-sm btnEliminar">X</button></td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-
-                <button type="button" class="btn btn-secondary mb-3" id="btnAgregarFila">+ Agregar producto</button>
-
+               <!--PRODUCTOS-->
+<hr>
+<h5>Productos</h5>
+<table class="table table-bordered" id="tablaProductos">
+    <thead class="table-light">
+        <tr>
+            <th>Producto</th>
+            <th>Precio</th>
+            <th>Cantidad</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody id="cuerpoProductos">
+        <tr>
+            <td class="position-relative">
+                <input type="text" class="form-control buscarProducto"
+                       placeholder="Buscar producto..." autocomplete="off">
+                <input type="hidden" name="producto_id[]" class="producto_id">
+                <ul class="list-group position-absolute z-3 listaProductos"
+                    style="display:none; max-height:200px; overflow-y:auto; width:100%;"></ul>
+            </td>
+            <td>
+                <input type="number" step="0.01" name="precio[]"
+                       class="form-control precio" readonly>
+            </td>
+            <td>
+                <input type="number" name="cantidad[]" class="form-control cantidad" min="1">
+            </td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm btnEliminar">X</button>
+            </td>
+        </tr>
+    </tbody>
+</table>
+<button type="button" class="btn btn-secondary mb-3" id="btnAgregarFila">+ Agregar producto</button>
                 <!--TABLITA-->
                 <hr>
                 <div class="row justify-content-end">
@@ -179,8 +214,143 @@ function mostrarValor($valor)
 <script src="../../../public/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script>
     const IVA = 0.13;
-    
-    //calcula el total en tiempo real
+
+    // ── DATOS CARGADOS DESDE PHP ──────────────────────────
+    const todosLosClientes  = <?php echo json_encode($clientes); ?>;
+    const todosLosProductos = <?php echo json_encode($todosLosProductos); ?>;
+
+    // ── AUTOCOMPLETE CLIENTE ──────────────────────────────
+    const inputBusqueda       = document.getElementById('clienteBusqueda');
+    const inputOculto         = document.getElementById('cliente_id');
+    const lista               = document.getElementById('listaClientes');
+    const clienteSeleccionado = document.getElementById('clienteSeleccionado');
+
+    if (inputOculto.value && inputBusqueda.value) {
+        clienteSeleccionado.textContent = '✓ ' + inputBusqueda.value;
+    }
+
+    let timeoutBusqueda = null;
+
+    inputBusqueda.addEventListener('input', function () {
+        const texto = this.value.trim();
+
+        inputOculto.value               = '';
+        clienteSeleccionado.textContent = '';
+
+        if (texto.length < 2) {
+            lista.style.display = 'none';
+            lista.innerHTML     = '';
+            clearTimeout(timeoutBusqueda);
+            return;
+        }
+
+        clearTimeout(timeoutBusqueda);
+        timeoutBusqueda = setTimeout(() => {
+            const filtrados = todosLosClientes.filter(c =>
+                c.nombres.toLowerCase().includes(texto.toLowerCase()) ||
+                (c.dui && c.dui.toLowerCase().includes(texto.toLowerCase()))
+            );
+
+            if (filtrados.length === 0) {
+                lista.innerHTML     = '<li class="list-group-item text-muted">Sin resultados</li>';
+                lista.style.display = 'block';
+                return;
+            }
+
+            lista.innerHTML = filtrados.map(c => `
+                <li class="list-group-item list-group-item-action"
+                    style="cursor:pointer"
+                    data-id="${c.id_cliente}"
+                    data-nombre="${c.nombres}">
+                    <strong>${c.nombres}</strong>
+                    ${c.dui ? '<span class="text-muted ms-2">— ' + c.dui + '</span>' : ''}
+                </li>
+            `).join('');
+
+            lista.style.display = 'block';
+        }, 300);
+    });
+
+    lista.addEventListener('click', function (e) {
+        const item = e.target.closest('li[data-id]');
+        if (!item) return;
+
+        inputOculto.value               = item.dataset.id;
+        inputBusqueda.value             = item.dataset.nombre;
+        clienteSeleccionado.textContent = '✓ ' + item.dataset.nombre;
+        lista.style.display             = 'none';
+        lista.innerHTML                 = '';
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('.position-relative')) {
+            lista.style.display = 'none';
+        }
+    });
+
+    // ── AUTOCOMPLETE PRODUCTOS ────────────────────────────
+    function iniciarAutoCompleteProducto(fila) {
+        const inputNombre = fila.querySelector('.buscarProducto');
+        const inputId     = fila.querySelector('.producto_id');
+        const inputPrecio = fila.querySelector('.precio');
+        const listaP      = fila.querySelector('.listaProductos');
+
+        inputNombre.addEventListener('input', function () {
+            const texto = this.value.trim().toLowerCase();
+
+            inputId.value     = '';
+            inputPrecio.value = '';
+
+            if (texto.length < 2) {
+                listaP.style.display = 'none';
+                listaP.innerHTML     = '';
+                return;
+            }
+
+            const filtrados = todosLosProductos.filter(p =>
+                p.nombre_producto.toLowerCase().includes(texto)
+            );
+
+            if (filtrados.length === 0) {
+                listaP.innerHTML     = '<li class="list-group-item text-muted">Sin resultados</li>';
+                listaP.style.display = 'block';
+                return;
+            }
+
+            listaP.innerHTML = filtrados.map(p => `
+                <li class="list-group-item list-group-item-action"
+                    style="cursor:pointer"
+                    data-id="${p.id_producto}"
+                    data-nombre="${p.nombre_producto}"
+                    data-precio="${p.precio}">
+                    ${p.nombre_producto}
+                    <span class="text-muted ms-2">$${parseFloat(p.precio).toFixed(2)}</span>
+                </li>
+            `).join('');
+
+            listaP.style.display = 'block';
+        });
+
+        listaP.addEventListener('click', function (e) {
+            const item = e.target.closest('li[data-id]');
+            if (!item) return;
+
+            inputNombre.value = item.dataset.nombre;
+            inputId.value     = item.dataset.id;
+            inputPrecio.value = item.dataset.precio;
+            listaP.style.display = 'none';
+            listaP.innerHTML     = '';
+            calcularTotales();
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!fila.contains(e.target)) {
+                listaP.style.display = 'none';
+            }
+        });
+    }
+
+    // ── TABLA DE PRODUCTOS ────────────────────────────────
     function calcularTotales() {
         let subtotal = 0;
 
@@ -198,33 +368,45 @@ function mostrarValor($valor)
         document.getElementById('mostrarTotal').innerHTML      = '<strong>$' + total.toFixed(2) + '</strong>';
     }
 
-    //comportamientos de las filas
     function agregarEventosFila(fila) {
+        iniciarAutoCompleteProducto(fila);
+
         fila.querySelector('.btnEliminar').addEventListener('click', () => {
             fila.remove();
             calcularTotales();
         });
 
-        fila.querySelectorAll('.precio, .cantidad').forEach(input => {
+        fila.querySelectorAll('.cantidad').forEach(input => {
             input.addEventListener('input', calcularTotales);
         });
     }
 
-    //crea filas
     function nuevaFila() {
         const fila = document.createElement('tr');
         fila.innerHTML = `
-            <td><input type="number" name="producto_id[]" class="form-control"></td>
-            <td><input type="number" step="0.01" name="precio[]" class="form-control precio"></td>
-            <td><input type="number" name="cantidad[]" class="form-control cantidad"></td>
-            <td><button type="button" class="btn btn-danger btn-sm btnEliminar">X</button></td>
+            <td class="position-relative">
+                <input type="text" class="form-control buscarProducto"
+                       placeholder="Buscar producto..." autocomplete="off">
+                <input type="hidden" name="producto_id[]" class="producto_id">
+                <ul class="list-group position-absolute z-3 listaProductos"
+                    style="display:none; max-height:200px; overflow-y:auto; width:100%;"></ul>
+            </td>
+            <td>
+                <input type="number" step="0.01" name="precio[]"
+                       class="form-control precio" readonly>
+            </td>
+            <td>
+                <input type="number" name="cantidad[]" class="form-control cantidad" min="1">
+            </td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm btnEliminar">X</button>
+            </td>
         `;
         document.getElementById('cuerpoProductos').appendChild(fila);
         agregarEventosFila(fila);
     }
 
     document.querySelectorAll('#cuerpoProductos tr').forEach(agregarEventosFila);
-
     document.getElementById('btnAgregarFila').addEventListener('click', nuevaFila);
 </script>
 </body>
