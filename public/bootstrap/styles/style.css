@@ -1,0 +1,45 @@
+body { font-family: 'Segoe UI', sans-serif; background-color: #f4f6f9; padding: 40px; display: flex; justify-content: center; }
+.contenedor { width: 100%; max-width: 650px; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+h2 { color: #2c3e50; text-align: center; margin-top: 0; }
+
+.formulario { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e1e8ed; }
+.formulario input, .formulario textarea { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; font-family: inherit; }
+.formulario textarea { resize: vertical; height: 60px; }
+.fila-botones { display: flex; gap: 10px; justify-content: flex-end; }
+
+.botton { padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; text-decoration: none; font-size: 14px; color: white; }
+.btn-guardar { background-color: #2ecc71; }
+.btn-actualizar { background-color: #3498db; }
+.btn-cancelar { background-color: #95a5a6; }
+
+.tabla { width: 100%; border-collapse: collapse; margin-top: 15px; }
+.tabla th, .tabla td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+.tabla th { background-color: #f1f3f5; color: #495057; }
+
+.acciones { display: flex; gap: 6px; }
+.btn-accion { text-decoration: none; padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; color: white; border: none;}
+.btn-editar { background-color: #f1c40f; color: #2c3e50; }
+.btn-eliminar { background-color: #e74c3c; }
+
+/* modal */
+
+ /* Fondo oscuro */
+.modal-homemade {
+       position: fixed;
+       top: 0;
+       left: 0;
+       width: 100%;
+       height: 100%;
+       background: rgba(0, 0, 0, 0.5);
+       z-index: 10;
+}
+
+/* Caja blanca */
+.modal-contenido {
+       background: white;
+       width: 300px;
+       padding: 20px;
+       margin: 100px auto;
+       border-radius: 5px;
+       text-align: center;
+}

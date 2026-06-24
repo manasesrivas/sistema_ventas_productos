@@ -64,7 +64,7 @@ class ProductoNegocio{
 
 
         if(!isset($datos['nombre_producto']) || empty( trim($datos['nombre_producto'])) ){
-            $errores[] = "El nombre del prodcuto es obligatorio.";
+            $errores[] = "El nombre del producto es obligatorio.";
         }
 
         if(isset($datos['nombre_producto']) && strlen( trim($datos['nombre_producto']) ) > 255 ){
@@ -162,7 +162,7 @@ class ProductoNegocio{
 
         return [
             'exito' => $resultado,
-            'mensaje' => $resultado ? 'Pruducto actualizado correcctamente.' : 'No se puedo actualizar el producto'
+            'mensaje' => $resultado ? 'Producto actualizado correcctamente.' : 'No se puedo actualizar el producto'
         ];
         
         
