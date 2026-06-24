@@ -121,7 +121,6 @@ class ClienteNegocio{
             'mensaje' => $resultado ? 'Cliente eliminado correctamente.' : 'No se pudo eliminar el cliente.'
         ];
     }
-    
 }
 
 
