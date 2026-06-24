@@ -59,4 +59,9 @@ class DetalleVentaNegocio
     {
         return $this->detalleVentaDatos->listarPorVenta($venta_id);
     }
+
+    public function eliminarDetallePorVenta($venta_id)
+    {
+        return $this->detalleVentaDatos->eliminarPorVenta($venta_id);
+    }
 }

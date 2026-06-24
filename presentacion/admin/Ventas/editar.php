@@ -2,26 +2,42 @@
 
 require_once __DIR__ . '/../../../negocio/VentaNegocio.php';
 require_once __DIR__ . '/../../../negocio/ClienteNegocio.php';
-require_once __DIR__ . '/../../../negocio/ProductoNegocio.php';
 // require_once __DIR__ . '/../../../negocio/UsuarioNegocio.php';
 
-$ventaNegocio  = new VentaNegocio();
+$ventaNegocio   = new VentaNegocio();
 $clienteNegocio = new ClienteNegocio();
-// $usuarioNegocio = new UsuarioNegocio();
-$productoNegocio = new ProductoNegocio();
 
-$errores = [];
-$clientePreseleccionado = ''; 
+$errores                = [];
+$clientePreseleccionado = '';
+
+$id_venta = $_GET['id'] ?? null;
+
+if (empty($id_venta) || !is_numeric($id_venta)) {
+    header("Location: listar.php");
+    exit;
+}
+
+$ventaExistente = $ventaNegocio->obtenerVentaConDetalle($id_venta);
+
+if (!$ventaExistente) {
+    header("Location: listar.php");
+    exit;
+}
+
+$clienteActual          = $clienteNegocio->obtenerClientePorId($ventaExistente['cliente_id']);
+$clientePreseleccionado = $clienteActual ? $clienteActual['nombres'] : '';
 
 $datos = [
-    'cliente_id'   => '',
-    'usuario_id'   => '',
-    'descuento_id' => ''
+    'cliente_id'   => $ventaExistente['cliente_id'],
+    'usuario_id'   => $ventaExistente['usuario_id'],
+    'descuento_id' => $ventaExistente['descuento_id']
 ];
+
+$productos = $ventaExistente['productos'];
+
 $productosnew = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
     $datos = [
         'cliente_id'   => $_POST['cliente_id']   ?? '',
         'usuario_id'   => $_POST['usuario_id']   ?? '',
@@ -32,9 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach ($_POST['producto_id'] as $i => $id) {
             if (empty($id)) continue;
             $productosnew[] = [
-                'producto_id' => $id,
-                'precio'      => $_POST['precio'][$i]   ?? 0,
-                'cantidad'    => $_POST['cantidad'][$i] ?? 0
+                'producto_id' => (int) $id,
+                'precio'      => (float) ($_POST['precio'][$i]   ?? 0),
+                'cantidad'    => (int)   ($_POST['cantidad'][$i] ?? 0)
             ];
         }
     }
@@ -44,10 +60,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $clientePreseleccionado = $clienteActual ? $clienteActual['nombres'] : '';
     }
 
-    $resultado = $ventaNegocio->crearVenta($datos, $productosnew);
+    $resultado = $ventaNegocio->actualizarVenta($id_venta, $datos, $productosnew);
 
     if ($resultado['exito']) {
-        header("Location: listar.php?mensaje=creado");
+        header("Location: listar.php?mensaje=actualizado");
         exit;
     } else {
         if (!empty($resultado['errores'])) {
@@ -55,34 +71,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif (!empty($resultado['mensaje'])) {
             $errores = [$resultado['mensaje']];
         } else {
-            $errores = ['Ocurrió un error inesperado al registrar la venta.'];
+            $errores = ['Ocurrió un error inesperado al actualizar la venta.'];
         }
     }
-}  
+}
 
 $clientes = $clienteNegocio->listarClientes();
-$todosLosProductos = $productoNegocio->listarProductos();
-// $usuarios = $usuarioNegocio->listarUsuarios();
 
-// TEMPORAL: usuarios de prueba hasta que exista UsuarioNegocio
 $usuarios = [
     ['id_usuario' => 1, 'nombre_usuario' => 'Usuario de prueba']
 ];
-// $todosLosProductos = [
-//     ['id_producto' => 1, 'nombre_producto' => 'Laptop HP', 'precio' => 500.00],
-//     ['id_producto' => 2, 'nombre_producto' => 'Mouse Logitech', 'precio' => 25.00],
-//     ['id_producto' => 3, 'nombre_producto' => 'Teclado Genius', 'precio' => 15.00],
-// ];
+
+$todosLosProductos = [
+    ['id_producto' => 1, 'nombre_producto' => 'Laptop HP',      'precio' => 500.00],
+    ['id_producto' => 2, 'nombre_producto' => 'Mouse Logitech', 'precio' => 25.00],
+    ['id_producto' => 3, 'nombre_producto' => 'Teclado Genius', 'precio' => 15.00],
+];
 
 function mostrarValor($valor)
 {
-    return htmlspecialchars($valor, ENT_QUOTES, 'UTF-8');
+    return htmlspecialchars($valor ?? '', ENT_QUOTES, 'UTF-8');
 }
 
 function aplanarErrores($errores)
 {
     $planos = [];
-
     foreach ($errores as $error) {
         if (is_array($error)) {
             $planos = array_merge($planos, $error);
@@ -90,7 +103,6 @@ function aplanarErrores($errores)
             $planos[] = $error;
         }
     }
-
     return $planos;
 }
 ?>
@@ -99,14 +111,14 @@ function aplanarErrores($errores)
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Registrar venta</title>
+    <title>Editar venta</title>
     <link rel="stylesheet" href="../../../public/bootstrap/css/bootstrap.min.css">
 </head>
 <body class="bg-light">
 <div class="container mt-5">
     <div class="card shadow">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">Registrar venta</h4>
+        <div class="card-header bg-warning text-dark">
+            <h4 class="mb-0">Editar venta #<?php echo mostrarValor($id_venta); ?></h4>
         </div>
         <div class="card-body">
 
@@ -120,7 +132,7 @@ function aplanarErrores($errores)
             </div>
             <?php endif; ?>
 
-            <form method="POST" action="crear.php">
+            <form method="POST" action="editar.php?id=<?php echo mostrarValor($id_venta); ?>">
 
                 <!--CLIENTE-->
                 <div class="mb-3 position-relative">
@@ -130,15 +142,12 @@ function aplanarErrores($errores)
                            autocomplete="off"
                            value="<?php echo mostrarValor($clientePreseleccionado); ?>">
 
-                    <!--input oculto: es el que realmente se envía con el formulario-->
                     <input type="hidden" name="cliente_id" id="cliente_id"
                            value="<?php echo mostrarValor($datos['cliente_id']); ?>">
 
-                    <!--lista de sugerencias que aparece mientras se escribe-->
                     <ul id="listaClientes" class="list-group position-absolute z-3"
                         style="display:none; max-height:200px; overflow-y:auto; width:100%;"></ul>
 
-                    <!--confirmación visual de que se seleccionó un cliente-->
                     <small id="clienteSeleccionado" class="text-success mt-1 d-block"></small>
                 </div>
 
@@ -163,42 +172,73 @@ function aplanarErrores($errores)
                            value="<?php echo mostrarValor($datos['descuento_id'] ?? ''); ?>">
                 </div>
 
-               <!--PRODUCTOS-->
-<hr>
-<h5>Productos</h5>
-<table class="table table-bordered" id="tablaProductos">
-    <thead class="table-light">
-        <tr>
-            <th>Producto</th>
-            <th>Precio</th>
-            <th>Cantidad</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody id="cuerpoProductos">
-        <tr>
-            <td class="position-relative">
-                <input type="text" class="form-control buscarProducto"
-                       placeholder="Buscar producto..." autocomplete="off">
-                <input type="hidden" name="producto_id[]" class="producto_id">
-                <ul class="list-group position-absolute z-3 listaProductos"
-                    style="display:none; max-height:200px; overflow-y:auto; width:100%;"></ul>
-            </td>
-            <td>
-                <input type="number" step="0.01" name="precio[]"
-                       class="form-control precio" readonly>
-            </td>
-            <td>
-                <input type="number" name="cantidad[]" class="form-control cantidad" min="1">
-            </td>
-            <td>
-                <button type="button" class="btn btn-danger btn-sm btnEliminar">X</button>
-            </td>
-        </tr>
-    </tbody>
-</table>
-<button type="button" class="btn btn-secondary mb-3" id="btnAgregarFila">+ Agregar producto</button>
-                <!--TABLITA-->
+                <!--PRODUCTOS-->
+                <hr>
+                <h5>Productos</h5>
+                <table class="table table-bordered" id="tablaProductos">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Producto</th>
+                            <th>Precio</th>
+                            <th>Cantidad</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpoProductos">
+                        <?php if (!empty($productos)): ?>
+                            <?php foreach ($productos as $prod): ?>
+                            <tr>
+                                <td class="position-relative">
+                                    <input type="text" class="form-control buscarProducto"
+                                           placeholder="Buscar producto..." autocomplete="off"
+                                           value="<?php echo mostrarValor($prod['nombre_producto'] ?? ''); ?>">
+                                    <input type="hidden" name="producto_id[]" class="producto_id"
+                                           value="<?php echo mostrarValor($prod['producto_id']); ?>">
+                                    <ul class="list-group position-absolute z-3 listaProductos"
+                                        style="display:none; max-height:200px; overflow-y:auto; width:100%;"></ul>
+                                </td>
+                                <td>
+                                    <input type="number" step="0.01" name="precio[]"
+                                           class="form-control precio" readonly
+                                           value="<?php echo mostrarValor($prod['subtotal'] / max($prod['cantidad'], 1)); ?>">
+                                </td>
+                                <td>
+                                    <input type="number" name="cantidad[]"
+                                           class="form-control cantidad" min="1"
+                                           value="<?php echo mostrarValor($prod['cantidad']); ?>">
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-danger btn-sm btnEliminar">X</button>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td class="position-relative">
+                                    <input type="text" class="form-control buscarProducto"
+                                           placeholder="Buscar producto..." autocomplete="off">
+                                    <input type="hidden" name="producto_id[]" class="producto_id">
+                                    <ul class="list-group position-absolute z-3 listaProductos"
+                                        style="display:none; max-height:200px; overflow-y:auto; width:100%;"></ul>
+                                </td>
+                                <td>
+                                    <input type="number" step="0.01" name="precio[]"
+                                           class="form-control precio" readonly>
+                                </td>
+                                <td>
+                                    <input type="number" name="cantidad[]"
+                                           class="form-control cantidad" min="1">
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-danger btn-sm btnEliminar">X</button>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+
+                <button type="button" class="btn btn-secondary mb-3" id="btnAgregarFila">+ Agregar producto</button>
+
                 <hr>
                 <div class="row justify-content-end">
                     <div class="col-md-4">
@@ -210,7 +250,7 @@ function aplanarErrores($errores)
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-success">Guardar venta</button>
+                <button type="submit" class="btn btn-success">Actualizar venta</button>
                 <a href="listar.php" class="btn btn-secondary">Cancelar</a>
 
             </form>
@@ -222,7 +262,6 @@ function aplanarErrores($errores)
 <script>
     const IVA = 0.13;
 
-    // ── DATOS CARGADOS DESDE PHP ──────────────────────────
     const todosLosClientes  = <?php echo json_encode($clientes); ?>;
     const todosLosProductos = <?php echo json_encode($todosLosProductos); ?>;
 
@@ -297,10 +336,10 @@ function aplanarErrores($errores)
 
     // ── AUTOCOMPLETE PRODUCTOS ────────────────────────────
     function iniciarAutoCompleteProducto(fila) {
-        const inputNombre = fila.querySelector('.buscarProducto');
-        const inputId     = fila.querySelector('.producto_id');
-        const inputPrecio = fila.querySelector('.precio');
-        const listaP      = fila.querySelector('.listaProductos');
+        const inputNombre  = fila.querySelector('.buscarProducto');
+        const inputId      = fila.querySelector('.producto_id');
+        const inputPrecio  = fila.querySelector('.precio');
+        const listaP       = fila.querySelector('.listaProductos');
 
         inputNombre.addEventListener('input', function () {
             const texto = this.value.trim().toLowerCase();
@@ -342,9 +381,9 @@ function aplanarErrores($errores)
             const item = e.target.closest('li[data-id]');
             if (!item) return;
 
-            inputNombre.value = item.dataset.nombre;
-            inputId.value     = item.dataset.id;
-            inputPrecio.value = item.dataset.precio;
+            inputNombre.value    = item.dataset.nombre;
+            inputId.value        = item.dataset.id;
+            inputPrecio.value    = item.dataset.precio;
             listaP.style.display = 'none';
             listaP.innerHTML     = '';
             calcularTotales();
@@ -415,29 +454,29 @@ function aplanarErrores($errores)
 
     document.querySelectorAll('#cuerpoProductos tr').forEach(agregarEventosFila);
     document.getElementById('btnAgregarFila').addEventListener('click', nuevaFila);
-    
+    calcularTotales();
+
     // ── VALIDACIÓN AL ENVIAR ──────────────────────────────
     document.querySelector('form').addEventListener('submit', function(e) {
-    let valido = true;
+        let valido = true;
 
-    document.querySelectorAll('#cuerpoProductos tr').forEach(fila => {
-        const id       = fila.querySelector('.producto_id').value;
-        const cantidad = fila.querySelector('.cantidad').value;
+        document.querySelectorAll('#cuerpoProductos tr').forEach(fila => {
+            const id       = fila.querySelector('.producto_id').value;
+            const cantidad = fila.querySelector('.cantidad').value;
 
-        // si eligió producto pero no puso cantidad
-        if (id && (!cantidad || parseInt(cantidad) <= 0)) {
-            valido = false;
-            fila.querySelector('.cantidad').classList.add('is-invalid');
-        } else {
-            fila.querySelector('.cantidad').classList.remove('is-invalid');
+            if (id && (!cantidad || parseInt(cantidad) <= 0)) {
+                valido = false;
+                fila.querySelector('.cantidad').classList.add('is-invalid');
+            } else {
+                fila.querySelector('.cantidad').classList.remove('is-invalid');
+            }
+        });
+
+        if (!valido) {
+            e.preventDefault();
+            alert('Por favor ingresá la cantidad de todos los productos agregados.');
         }
     });
-
-    if (!valido) {
-        e.preventDefault(); // detiene el envío del formulario
-        alert('Por favor ingresá la cantidad de todos los productos agregados.');
-    }
-});
 </script>
 </body>
 </html>

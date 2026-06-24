@@ -14,9 +14,12 @@ class DetalleVentaDatos
     //--listar detalle de una venta--
     public function listarPorVenta($venta_id)
     {
-        $this->conexion->query = "SELECT id_detalle_venta, venta_id, producto_id, subtotal, cantidad
-                                  FROM detalle_ventas
-                                  WHERE venta_id = ?";
+        $this->conexion->query = "SELECT dv.id_detalle_venta, dv.venta_id, dv.producto_id,
+                                dv.subtotal, dv.cantidad,
+                                p.nombre_producto
+                                FROM detalle_ventas dv
+                                INNER JOIN productos p ON dv.producto_id = p.id_producto
+                                WHERE dv.venta_id = ?";
         return $this->conexion->get_records([$venta_id]);
     }
 
