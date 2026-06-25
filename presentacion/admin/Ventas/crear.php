@@ -27,20 +27,21 @@ $datos = [
 $productosNew = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    echo '<pre>';
-    // echo var_dump($_POST);
-    echo '</pre>';
-
+    
     $datos = [
-        'cliente_id'   => $_POST['cliente_usuario']   ?? '',
-        'usuario_id'   => $_SESSION['IdUsuario']   ?? '',
+        'cliente_id'   => $_POST['cliente_id']   ?? '',
+        'usuario_id'   => $_SESSION['idUsuario']   ?? '',
         'descuento_id' => $_POST['descuento_id'] ?? null
-    ];
+        ];
+        
+        echo '<pre>';
+        echo var_dump($datos);
+        echo '</pre>';
 
     if (!empty($_POST['producto_id'])) {
         foreach ($_POST['producto_id'] as $i => $id) {
             if (empty($id)) continue;
-            $productosnew[] = [
+            $productosNew[] = [
                 'producto_id' => $id,
                 'precio'      => $_POST['precio'][$i]   ?? 0,
                 'cantidad'    => $_POST['cantidad'][$i] ?? 0
@@ -53,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $clientePreseleccionado = $clienteActual ? $clienteActual['nombres'] : '';
     }
 
-    $resultado = $ventaNegocio->crearVenta($datos, $productosnew);
+    $resultado = $ventaNegocio->crearVenta($datos, $productosNew);
 
     if ($resultado['exito']) {
         header("Location: listar.php?mensaje=creado");

@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/../../includes/seguridad.php';
 
-if($_SESSION['tipoCuenta'] !== 'ADMINISTRADO'){
+if($_SESSION['tipoCuenta'] !== 'ADMINISTRADOR'){
     header('Location: ../../login.php?mensaje=Acceso no autorizado');
     exit;
 }
