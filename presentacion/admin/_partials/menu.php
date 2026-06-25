@@ -19,6 +19,10 @@ $routes = [
     [
         'name' => 'Ventas',
         'route' => '/daw/proyecto_final/presentacion/admin/ventas/listar.php',
+    ],
+    [
+        'name' => 'Descuentos',
+        'route' => '/daw/proyecto_final/presentacion/admin/descuentos/listar.php'
     ]
 ];
 ?>

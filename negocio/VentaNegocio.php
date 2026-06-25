@@ -70,7 +70,7 @@ class VentaNegocio
         }
 
         $totales = $this->calcularTotales($productos);
-
+    
         $resultado = $this->ventaDatos->insertarVenta([
             'total'        => $totales['total'],
             'descuento_id' => $datos['descuento_id'] ?? null,

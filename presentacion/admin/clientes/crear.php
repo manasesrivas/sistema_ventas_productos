@@ -75,23 +75,27 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
                 <form action="crear.php" method="post">
                     <div class="mb-3">
                         <label for="" class="form-label">Nombre del cliente</label>
-                        <input type="text" name="Nombres" id="" class="form-control">
+                        <input type="text" name="Nombres" id="" class="form-control"
+                        value="<?php echo @$_POST['Nombres'];?>">
                     </div>
                     <div class="mb-3">
                         <label for="" class="form-label">DUI</label>
-                        <input type="text" name="DUI" id="" class="form-control" placeholder="12345678-9">
+                        <input type="text" name="DUI" id="" class="form-control" placeholder="12345678-9"
+                        value="<?php echo @$_POST['DUI']; ?>">
                     </div>
                     <div class="mb-3">
                         <label for="" class="form-label">NIT</label>
-                        <input type="text" name="NIT" id="" class="form-control">
+                        <input type="text" name="NIT" id="" class="form-control"
+                        value="<?php echo @$_POST['NIT']; ?>">
                     </div>
                     <div class="mb-3">
                         <label for="" class="form-label">Telefono</label>
-                        <input type="text" name="Telefono" id="" class="form-control">
+                        <input type="text" name="Telefono" id="" class="form-control"
+                        value="<?php echo @$_POST['Telefono']; ?>">
                     </div>
                     <div class="mb-3">
                         <label for="" class="form-label">Direccion</label>
-                        <textarea name="Direccion" rows="3" id="" class="form-control"></textarea>
+                        <textarea name="Direccion" rows="3" id="" class="form-control"><?php echo @$_POST['Direccion']; ?></textarea>
                     </div>
                     <div class="mb-3">
                         <label for="" class="form-label">Tipo de cliente</label>
@@ -103,7 +107,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
                     </div>
                     <div class="mb-3">
                         <label for="" class="form-label">NRC</label>
-                        <input type="text" name="NRC" id="" class="form-control">
+                        <input type="text" name="NRC" id="" class="form-control" 
+                        value="<?php echo @$_POST['NRC']; ?>">
                     </div>
 
                     <button type="submit" class="btn btn-success">Guardar</button>

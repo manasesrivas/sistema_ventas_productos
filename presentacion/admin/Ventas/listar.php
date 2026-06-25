@@ -1,5 +1,13 @@
 <?php
 
+require_once __DIR__ . '/../../includes/seguridad.php';
+
+if($_SESSION['tipoCuenta'] !== 'ADMINISTRADO'){
+    header('Location: ../../login.php?mensaje=Acceso no autorizado');
+    exit;
+}
+
+
 require_once __DIR__ . '/../../../negocio/VentaNegocio.php';
 
 $ventaNegocio = new VentaNegocio();

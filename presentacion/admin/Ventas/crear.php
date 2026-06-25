@@ -2,13 +2,18 @@
 
 require_once __DIR__ . '/../../../negocio/VentaNegocio.php';
 require_once __DIR__ . '/../../../negocio/ClienteNegocio.php';
-require_once __DIR__ . '/../../../negocio/ProductoNegocio.php';
-// require_once __DIR__ . '/../../../negocio/UsuarioNegocio.php';
+require_once __DIR__ . '/../../../negocio/productoNegocio.php';
+require_once __DIR__ . '/../../../negocio/DescuentoNegocio.php';
 
+session_start();
+
+$productoNegocio = new ProductoNegocio();
 $ventaNegocio  = new VentaNegocio();
 $clienteNegocio = new ClienteNegocio();
-// $usuarioNegocio = new UsuarioNegocio();
+$descuentoNegocio = new DescuentoNegocio();
 $productoNegocio = new ProductoNegocio();
+
+$descuentos = $descuentoNegocio->listarDescuentos();
 
 $errores = [];
 $clientePreseleccionado = ''; 
@@ -18,13 +23,17 @@ $datos = [
     'usuario_id'   => '',
     'descuento_id' => ''
 ];
-$productosnew = [];
 
+$productosNew = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
+    echo '<pre>';
+    // echo var_dump($_POST);
+    echo '</pre>';
+
     $datos = [
-        'cliente_id'   => $_POST['cliente_id']   ?? '',
-        'usuario_id'   => $_POST['usuario_id']   ?? '',
+        'cliente_id'   => $_POST['cliente_usuario']   ?? '',
+        'usuario_id'   => $_SESSION['IdUsuario']   ?? '',
         'descuento_id' => $_POST['descuento_id'] ?? null
     ];
 
@@ -61,18 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }  
 
 $clientes = $clienteNegocio->listarClientes();
-$todosLosProductos = $productoNegocio->listarProductos();
-// $usuarios = $usuarioNegocio->listarUsuarios();
+$productos = $productoNegocio->listarProductos();
 
-// TEMPORAL: usuarios de prueba hasta que exista UsuarioNegocio
-$usuarios = [
-    ['id_usuario' => 1, 'nombre_usuario' => 'Usuario de prueba']
-];
-// $todosLosProductos = [
-//     ['id_producto' => 1, 'nombre_producto' => 'Laptop HP', 'precio' => 500.00],
-//     ['id_producto' => 2, 'nombre_producto' => 'Mouse Logitech', 'precio' => 25.00],
-//     ['id_producto' => 3, 'nombre_producto' => 'Teclado Genius', 'precio' => 15.00],
-// ];
 
 function mostrarValor($valor)
 {
@@ -93,6 +92,7 @@ function aplanarErrores($errores)
 
     return $planos;
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -123,45 +123,54 @@ function aplanarErrores($errores)
             <form method="POST" action="crear.php">
 
                 <!--CLIENTE-->
-                <div class="mb-3 position-relative">
-                    <label for="clienteBusqueda" class="form-label">Cliente</label>
-                    <input type="text" id="clienteBusqueda" class="form-control"
-                           placeholder="Buscar por nombre o DUI..."
-                           autocomplete="off"
-                           value="<?php echo mostrarValor($clientePreseleccionado); ?>">
-
-                    <!--input oculto: es el que realmente se envía con el formulario-->
-                    <input type="hidden" name="cliente_id" id="cliente_id"
-                           value="<?php echo mostrarValor($datos['cliente_id']); ?>">
-
-                    <!--lista de sugerencias que aparece mientras se escribe-->
-                    <ul id="listaClientes" class="list-group position-absolute z-3"
-                        style="display:none; max-height:200px; overflow-y:auto; width:100%;"></ul>
-
-                    <!--confirmación visual de que se seleccionó un cliente-->
-                    <small id="clienteSeleccionado" class="text-success mt-1 d-block"></small>
-                </div>
-
-                <!--USUARIO-->
-                <div class="mb-3">
-                    <label for="usuario_id" class="form-label">Usuario</label>
-                    <select name="usuario_id" id="usuario_id" class="form-select">
-                        <option value="">Seleccione un usuario</option>
-                        <?php foreach ($usuarios as $usuario): ?>
-                            <option value="<?php echo mostrarValor($usuario['id_usuario']); ?>"
-                                <?php echo $datos['usuario_id'] == $usuario['id_usuario'] ? 'selected' : ''; ?>>
-                                <?php echo mostrarValor($usuario['nombre_usuario']); ?>
-                            </option>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="clienteBusqueda" class="form-label">DUI</label>
+                        <input type="text" id="clienteBusqueda" class="form-control"
+                        placeholder="dui"
+                        name="dui"
+                        list="clientes-list"
+                        onchange="onChangeDui(this)"
+                        value="<?php echo @$_POST['dui']; ?>"
+                        >
+                        <input type="hidden" name="cliente_id" id="cliente">
+                    </div>
+                        
+                    <div class="col-md-6">
+                        <label for="" class="form-label">Nombre</label>
+                        <input type="text"
+                        placeholder="Nombres"
+                        class="form-control"
+                        id="nombres"
+                        value="<?php echo @$_POST['nombres']; ?>">
+                    </div>
+                    <datalist id="clientes-list">
+                        <?php foreach($clientes as $cliente):?>
+                            <option 
+                            value="<?php echo $cliente['dui']; ?>"
+                            data-nombres="<?php echo $cliente['nombres']; ?>"
+                            data-cliente-id="<?php echo $cliente['id_cliente']; ?>"
+                            >
                         <?php endforeach; ?>
-                    </select>
+                    </datalist>
+
                 </div>
 
                 <!--DESCUENTO-->
                 <div class="mb-3">
-                    <label for="descuento_id" class="form-label">Descuento (opcional)</label>
-                    <input type="number" name="descuento_id" id="descuento_id" class="form-control"
-                           value="<?php echo mostrarValor($datos['descuento_id'] ?? ''); ?>">
+                    <div class="col-md-6">
+                        <label for="descuento_id" class="form-label">Descuento </label>
+                        <select name="descuento_id" id="" class="form-control">
+                            <option value="">elije un descuento</option>
+                            <?php foreach($descuentos as $descuento): ?>
+                                <option value="<?php echo $descuento['id_descuento']; ?>">
+                                    <?php echo "{$descuento['descripcion']} - {$descuento['descuento']}%"; ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                 </div>
+
 
                <!--PRODUCTOS-->
 <hr>
@@ -171,6 +180,7 @@ function aplanarErrores($errores)
         <tr>
             <th>Producto</th>
             <th>Precio</th>
+            <th>Marca</th>
             <th>Cantidad</th>
             <th></th>
         </tr>
@@ -178,34 +188,62 @@ function aplanarErrores($errores)
     <tbody id="cuerpoProductos">
         <tr>
             <td class="position-relative">
-                <input type="text" class="form-control buscarProducto"
-                       placeholder="Buscar producto..." autocomplete="off">
-                <input type="hidden" name="producto_id[]" class="producto_id">
-                <ul class="list-group position-absolute z-3 listaProductos"
-                    style="display:none; max-height:200px; overflow-y:auto; width:100%;"></ul>
+                <input
+                type="text" 
+                list="productos-list"
+                id="id_producto"
+                class="form-control id_producto"
+                placeholder="Buscar producto..."
+                name="producto_id[]" 
+                onchange="onChangeProductos(this)"
+                >
+                <datalist id="productos-list">
+                    <?php foreach($productos as $producto): ?>
+                        <option 
+                        value="<?php echo $producto['id_producto']; ?>"
+                        data-precio="<?php echo $producto['precio']; ?>"
+                        data-nombre-producto="<?php echo $producto['nombre_producto']; ?>"
+                        data-marca="<?php echo $producto['marca']; ?>"
+                        >
+                    <?php endforeach; ?>
+                </datalist>
             </td>
             <td>
-                <input type="number" step="0.01" name="precio[]"
-                       class="form-control precio" readonly>
+                <input style="pointer-events: none;" type="number" name="precio[]"
+                    class="form-control precio" readonly>
             </td>
             <td>
-                <input type="number" name="cantidad[]" class="form-control cantidad" min="1">
+                <input style="pointer-events: none;" type="text"
+                    class="form-control marca" >
             </td>
             <td>
-                <button type="button" class="btn btn-danger btn-sm btnEliminar">X</button>
+                <input onchange="onChangeCantidad(this)" type="number" name="cantidad[]" value="1" class="form-control cantidad" min="1">
+            </td>
+            <td>
+                <button onclick="removeMySelf(this)" type="button" class="btn btn-danger btn-sm btnEliminar">X</button>
             </td>
         </tr>
     </tbody>
 </table>
-<button type="button" class="btn btn-secondary mb-3" id="btnAgregarFila">+ Agregar producto</button>
-                <!--TABLITA-->
+<button onclick="onAgregarProducto()" type="button" class="btn btn-secondary" id="btnAgregarFila">+</button>
                 <hr>
                 <div class="row justify-content-end">
                     <div class="col-md-4">
                         <table class="table">
-                            <tr><th>Subtotal</th><td id="mostrarSubtotal">$0.00</td></tr>
-                            <tr><th>IVA (13%)</th><td id="mostrarIva">$0.00</td></tr>
-                            <tr><th>Total</th><td id="mostrarTotal"><strong>$0.00</strong></td></tr>
+                            <tr>
+                                <th>Subtotal</th>
+                                <td id="mostrarSubtotal">$0.00</td>
+                            </tr>
+                            <tr>
+                                <th>IVA (13%)</th>
+                                <td id="mostrarIva">$0.00</td>
+                            </tr>
+                            <tr>
+                                <th>Total</th>
+                                <td id="mostrarTotal">
+                                    <strong>$0.00</strong>
+                                </td>
+                            </tr>
                         </table>
                     </div>
                 </div>
@@ -220,224 +258,122 @@ function aplanarErrores($errores)
 
 <script src="../../../public/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script>
-    const IVA = 0.13;
-
-    // ── DATOS CARGADOS DESDE PHP ──────────────────────────
-    const todosLosClientes  = <?php echo json_encode($clientes); ?>;
-    const todosLosProductos = <?php echo json_encode($todosLosProductos); ?>;
-
-    // ── AUTOCOMPLETE CLIENTE ──────────────────────────────
-    const inputBusqueda       = document.getElementById('clienteBusqueda');
-    const inputOculto         = document.getElementById('cliente_id');
-    const lista               = document.getElementById('listaClientes');
-    const clienteSeleccionado = document.getElementById('clienteSeleccionado');
-
-    if (inputOculto.value && inputBusqueda.value) {
-        clienteSeleccionado.textContent = '✓ ' + inputBusqueda.value;
-    }
-
-    let timeoutBusqueda = null;
-
-    inputBusqueda.addEventListener('input', function () {
-        const texto = this.value.trim();
-
-        inputOculto.value               = '';
-        clienteSeleccionado.textContent = '';
-
-        if (texto.length < 2) {
-            lista.style.display = 'none';
-            lista.innerHTML     = '';
-            clearTimeout(timeoutBusqueda);
-            return;
-        }
-
-        clearTimeout(timeoutBusqueda);
-        timeoutBusqueda = setTimeout(() => {
-            const filtrados = todosLosClientes.filter(c =>
-                c.nombres.toLowerCase().includes(texto.toLowerCase()) ||
-                (c.dui && c.dui.toLowerCase().includes(texto.toLowerCase()))
+    let canAdd = false;
+    const agregarProducto = tr => {
+        tr.insertAdjacentHTML(
+            'afterend',
+            `<tr>
+                <td>
+                    <input
+                    type="text" 
+                    list="productos-list"
+                    id="id_producto"
+                    class="form-control id_producto"
+                    placeholder="Buscar producto..."
+                    name="producto_id[]" 
+                    onchange="onChangeProductos(this)"
+                    >
+                </td>
+                <td>
+                    <input style="pointer-events: none;" type="number" name="precio[]"
+                    class="form-control precio" readonly>
+                </td>
+                <td>
+                    <input style="pointer-events: none;" type="text"
+                        class="form-control marca" >
+                </td>
+                <td>
+                    <input onchange="onChangeCantidad(this)" type="number" name="cantidad[]" value="1" class="form-control cantidad" min="1">
+                </td>
+                <td>
+                    <button onclick="removeMySelf(this)" type="button" class="btn btn-danger btn-sm btnEliminar">X</button>
+                </td>
+                </tr>`
             );
-
-            if (filtrados.length === 0) {
-                lista.innerHTML     = '<li class="list-group-item text-muted">Sin resultados</li>';
-                lista.style.display = 'block';
-                return;
-            }
-
-            lista.innerHTML = filtrados.map(c => `
-                <li class="list-group-item list-group-item-action"
-                    style="cursor:pointer"
-                    data-id="${c.id_cliente}"
-                    data-nombre="${c.nombres}">
-                    <strong>${c.nombres}</strong>
-                    ${c.dui ? '<span class="text-muted ms-2">— ' + c.dui + '</span>' : ''}
-                </li>
-            `).join('');
-
-            lista.style.display = 'block';
-        }, 300);
-    });
-
-    lista.addEventListener('click', function (e) {
-        const item = e.target.closest('li[data-id]');
-        if (!item) return;
-
-        inputOculto.value               = item.dataset.id;
-        inputBusqueda.value             = item.dataset.nombre;
-        clienteSeleccionado.textContent = '✓ ' + item.dataset.nombre;
-        lista.style.display             = 'none';
-        lista.innerHTML                 = '';
-    });
-
-    document.addEventListener('click', function (e) {
-        if (!e.target.closest('.position-relative')) {
-            lista.style.display = 'none';
-        }
-    });
-
-    // ── AUTOCOMPLETE PRODUCTOS ────────────────────────────
-    function iniciarAutoCompleteProducto(fila) {
-        const inputNombre = fila.querySelector('.buscarProducto');
-        const inputId     = fila.querySelector('.producto_id');
-        const inputPrecio = fila.querySelector('.precio');
-        const listaP      = fila.querySelector('.listaProductos');
-
-        inputNombre.addEventListener('input', function () {
-            const texto = this.value.trim().toLowerCase();
-
-            inputId.value     = '';
-            inputPrecio.value = '';
-
-            if (texto.length < 2) {
-                listaP.style.display = 'none';
-                listaP.innerHTML     = '';
-                return;
-            }
-
-            const filtrados = todosLosProductos.filter(p =>
-                p.nombre_producto.toLowerCase().includes(texto)
-            );
-
-            if (filtrados.length === 0) {
-                listaP.innerHTML     = '<li class="list-group-item text-muted">Sin resultados</li>';
-                listaP.style.display = 'block';
-                return;
-            }
-
-            listaP.innerHTML = filtrados.map(p => `
-                <li class="list-group-item list-group-item-action"
-                    style="cursor:pointer"
-                    data-id="${p.id_producto}"
-                    data-nombre="${p.nombre_producto}"
-                    data-precio="${p.precio}">
-                    ${p.nombre_producto}
-                    <span class="text-muted ms-2">$${parseFloat(p.precio).toFixed(2)}</span>
-                </li>
-            `).join('');
-
-            listaP.style.display = 'block';
-        });
-
-        listaP.addEventListener('click', function (e) {
-            const item = e.target.closest('li[data-id]');
-            if (!item) return;
-
-            inputNombre.value = item.dataset.nombre;
-            inputId.value     = item.dataset.id;
-            inputPrecio.value = item.dataset.precio;
-            listaP.style.display = 'none';
-            listaP.innerHTML     = '';
-            calcularTotales();
-        });
-
-        document.addEventListener('click', function (e) {
-            if (!fila.contains(e.target)) {
-                listaP.style.display = 'none';
-            }
-        });
+            canAdd = false;
     }
 
-    // ── TABLA DE PRODUCTOS ────────────────────────────────
-    function calcularTotales() {
-        let subtotal = 0;
-
-        document.querySelectorAll('#cuerpoProductos tr').forEach(fila => {
-            const precio   = parseFloat(fila.querySelector('.precio')?.value)   || 0;
-            const cantidad = parseFloat(fila.querySelector('.cantidad')?.value) || 0;
-            subtotal += precio * cantidad;
-        });
-
-        const iva   = subtotal * IVA;
-        const total = subtotal + iva;
-
-        document.getElementById('mostrarSubtotal').textContent = '$' + subtotal.toFixed(2);
-        document.getElementById('mostrarIva').textContent      = '$' + iva.toFixed(2);
-        document.getElementById('mostrarTotal').innerHTML      = '<strong>$' + total.toFixed(2) + '</strong>';
+    const onAgregarProducto = () => {
+        if(!canAdd) return;
+        const a = document.querySelector('#cuerpoProductos').querySelectorAll('tr');
+        agregarProducto(a[a.length-1]);
     }
 
-    function agregarEventosFila(fila) {
-        iniciarAutoCompleteProducto(fila);
+    const clienteBusqueda = document.querySelector('#clienteBusqueda');
+    const clienteNombre = document.querySelector('#nombres');
+    const clienteId = document.querySelector('#cliente');
+    const dataList = document.querySelector('#clientes-list');
 
-        fila.querySelector('.btnEliminar').addEventListener('click', () => {
-            fila.remove();
-            calcularTotales();
-        });
-
-        fila.querySelectorAll('.cantidad').forEach(input => {
-            input.addEventListener('input', calcularTotales);
-        });
+    const onChangeDui = target => {
+        console.log(target.value)
+        const dui = target.value;
+        const cliente = dataList.querySelector(`[value="${dui}"]`)
+        console.log(cliente)
+        clienteNombre.value = cliente.getAttribute('data-nombres');
+        clienteId.value = cliente.getAttribute('data-cliente-id');
+        
     }
-
-    function nuevaFila() {
-        const fila = document.createElement('tr');
-        fila.innerHTML = `
-            <td class="position-relative">
-                <input type="text" class="form-control buscarProducto"
-                       placeholder="Buscar producto..." autocomplete="off">
-                <input type="hidden" name="producto_id[]" class="producto_id">
-                <ul class="list-group position-absolute z-3 listaProductos"
-                    style="display:none; max-height:200px; overflow-y:auto; width:100%;"></ul>
-            </td>
-            <td>
-                <input type="number" step="0.01" name="precio[]"
-                       class="form-control precio" readonly>
-            </td>
-            <td>
-                <input type="number" name="cantidad[]" class="form-control cantidad" min="1">
-            </td>
-            <td>
-                <button type="button" class="btn btn-danger btn-sm btnEliminar">X</button>
-            </td>
-        `;
-        document.getElementById('cuerpoProductos').appendChild(fila);
-        agregarEventosFila(fila);
-    }
-
-    document.querySelectorAll('#cuerpoProductos tr').forEach(agregarEventosFila);
-    document.getElementById('btnAgregarFila').addEventListener('click', nuevaFila);
     
-    // ── VALIDACIÓN AL ENVIAR ──────────────────────────────
-    document.querySelector('form').addEventListener('submit', function(e) {
-    let valido = true;
 
-    document.querySelectorAll('#cuerpoProductos tr').forEach(fila => {
-        const id       = fila.querySelector('.producto_id').value;
-        const cantidad = fila.querySelector('.cantidad').value;
+    const dataListProductos = document.querySelector('#productos-list');
 
-        // si eligió producto pero no puso cantidad
-        if (id && (!cantidad || parseInt(cantidad) <= 0)) {
-            valido = false;
-            fila.querySelector('.cantidad').classList.add('is-invalid');
-        } else {
-            fila.querySelector('.cantidad').classList.remove('is-invalid');
-        }
-    });
+    const onChangeProductos = target => {
+        const idProducto = target.value;
+        const producto = dataListProductos.querySelector(`[value="${idProducto}"]`)
+        const precio = producto.getAttribute('data-precio');
+        const marca = producto.getAttribute('data-marca');
+        const tr = target.closest('tr');
 
-    if (!valido) {
-        e.preventDefault(); // detiene el envío del formulario
-        alert('Por favor ingresá la cantidad de todos los productos agregados.');
+        const fieldPrecio = tr.querySelector('.precio');
+        fieldPrecio.value = precio/100;
+        fieldPrecio.setAttribute('data-precio', precio);
+        tr.querySelector('.marca').value = marca;
+
+        canAdd = true;
+
+        subtotales(target.closest('tbody'));
     }
-});
+
+    const removeMySelf = target => {
+        const tbody = target.closest('tbody');
+        const tr = target.closest('tr');
+        if(tbody.children.length > 1) {
+            tr.remove();
+            canAdd = true;
+        }
+        subtotales(tbody)
+    }
+
+    const onChangeCantidad = target => {
+        const tr = target.closest('tr');
+        const idProducto = tr.querySelector('.id_producto').value;
+        const producto = dataListProductos.querySelector(`[value="${idProducto}"]`)
+
+        const precio = producto.getAttribute('data-precio');
+        const fieldPrecio = tr.querySelector('.precio');
+        fieldPrecio.value = (precio * target.value)/100;
+        subtotales(target.closest('tbody'))
+    }
+
+    const subtotalProyeccion = document.querySelector('#mostrarSubtotal');
+    const ivaProyeccion = document.querySelector('#mostrarIva');
+    const mostrarTotal = document.querySelector('#mostrarTotal');
+
+    const subtotales = tbody => {
+        const subtotalesField = [...tbody.querySelectorAll('.precio')];
+        let subtotal = subtotalesField.reduce(
+            (acumulador, numero) => acumulador + parseInt(numero.getAttribute('data-precio')),
+            0
+        )
+        console.log(subtotal)
+        subtotalProyeccion.textContent = (subtotal / 100).toFixed(2);
+        const iva = (0.13 * subtotal);
+        const total = ((subtotal + iva)/100).toFixed(2);
+
+        ivaProyeccion.textContent = (iva/100).toFixed(2);
+        mostrarTotal.textContent = total;
+    }
+
 </script>
 </body>
 </html>
