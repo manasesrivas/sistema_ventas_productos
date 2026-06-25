@@ -26,9 +26,13 @@ function mostrarValor($valor)
     <meta charset="UTF-8">
     <title>Listado de ventas</title>
     <link rel="stylesheet" href="../../../public/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../../public/bootstrap/styles/style.css">
 </head>
 <body class="bg-light">
 <div class="container mt-5">
+    <?php
+        include __DIR__ . '/../_partials/menu.php';
+    ?>
     <div class="card shadow">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h4 class="mb-0">Listado de ventas</h4>

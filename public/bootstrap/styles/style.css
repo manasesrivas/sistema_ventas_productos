@@ -43,3 +43,42 @@ h2 { color: #2c3e50; text-align: center; margin-top: 0; }
        border-radius: 5px;
        text-align: center;
 }
+
+/* ======================================= */
+/* menu */
+
+.body--menu{
+       display: flex;
+       justify-content: space-between;
+       width: 100%;
+}
+
+.name--store{
+       padding: 1em;
+}
+
+nav{
+       padding: 1em;
+}
+ul{
+       display: flex;
+       list-style: none;
+       text-decoration: none;
+       
+}
+
+li{
+       padding: 1em;
+       
+       & a{
+              font-size: 1.4rem;
+              text-decoration: none;
+              color: black;
+       }
+}
+
+.path-active{
+       background: rgba(0, 0, 0, 0.236);
+       padding: .5em;
+       border-radius: 5px;
+}
