@@ -161,10 +161,12 @@ function aplanarErrores($errores)
                 <div class="mb-3">
                     <div class="col-md-6">
                         <label for="descuento_id" class="form-label">Descuento </label>
-                        <select name="descuento_id" id="" class="form-control">
+                        <select name="descuento_id" id="descuento_select" class="form-control">
                             <option value="">elije un descuento</option>
                             <?php foreach($descuentos as $descuento): ?>
-                                <option value="<?php echo $descuento['id_descuento']; ?>">
+                                <option 
+                                    data-descuento="<?php echo $descuento['descuento']; ?>"
+                                    value="<?php echo $descuento['id_descuento']; ?>">
                                     <?php echo "{$descuento['descripcion']} - {$descuento['descuento']}%"; ?>
                                 </option>
                             <?php endforeach; ?>
@@ -238,6 +240,10 @@ function aplanarErrores($errores)
                             <tr>
                                 <th>IVA (13%)</th>
                                 <td id="mostrarIva">$0.00</td>
+                            </tr>
+                            <tr>
+                                <th>DESCUENTO</th>
+                                <td id="mostrardDescuento">$0.00</td>
                             </tr>
                             <tr>
                                 <th>Total</th>
@@ -358,7 +364,10 @@ function aplanarErrores($errores)
 
     const subtotalProyeccion = document.querySelector('#mostrarSubtotal');
     const ivaProyeccion = document.querySelector('#mostrarIva');
+    const descuento = document.querySelector('#mostraDescuento');
     const mostrarTotal = document.querySelector('#mostrarTotal');
+
+    const descuentoSelect = documento.querySelector('#descuento_select');
 
     const subtotales = tbody => {
         const subtotalesField = [...tbody.querySelectorAll('.precio')];
@@ -372,6 +381,7 @@ function aplanarErrores($errores)
         const total = ((subtotal + iva)/100).toFixed(2);
 
         ivaProyeccion.textContent = (iva/100).toFixed(2);
+        descuento.textContext = descuentoSelect.value;
         mostrarTotal.textContent = total;
     }
 

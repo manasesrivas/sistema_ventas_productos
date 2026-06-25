@@ -17,13 +17,19 @@ session_start();
     <title>Categorias registradas</title>
     <link rel="stylesheet" href="../../../public/bootstrap/styles/style.css">
     <link rel="stylesheet" href="../../../public/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../../public/bootstrap/styles/style.css">
+
 </head>
-    <body>
+    <body class="d-flex flex-column">
 
         <?php include '_partials/alert.php'; ?>
 
-</div>
-        <div class="contenedor">
+        <?php
+            include __DIR__ . '/../_partials/menu.php';
+        ?> 
+
+        <div class="contenedor mx-auto">
+            
             <h2>Categorías registrardas</h2>
             
             <form action="crear.php" method="POST" class="formulario">

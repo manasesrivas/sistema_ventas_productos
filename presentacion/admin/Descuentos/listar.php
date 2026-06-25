@@ -52,9 +52,14 @@ function mostrarValor($valor)
     <meta charset="UTF-8">
     <title>Descuentos</title>
     <link rel="stylesheet" href="../../../public/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../../public/bootstrap/styles/style.css">
+
 </head>
 <body class="bg-light">
 <div class="container mt-5">
+    <?php
+        include __DIR__ . '/../_partials/menu.php';
+    ?> 
 
     <?php if ($mensaje): ?>
         <div class="alert alert-success"><?php echo mostrarValor($mensaje); ?></div>

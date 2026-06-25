@@ -41,10 +41,10 @@ class VentaDatos
     $this->conexion->query = "SELECT v.id_venta, v.fecha_venta, v.total,
                               v.descuento_id, v.cliente_id, v.usuario_id, v.estado,
                               c.nombres AS nombre_cliente,
-                              u.nombre_usuario
+                              u.NombreCompleto
                               FROM ventas v
                               INNER JOIN clientes c ON v.cliente_id = c.id_cliente
-                              INNER JOIN usuarios u ON v.usuario_id = u.id_usuario
+                              INNER JOIN tbl_usuarios u ON v.usuario_id = u.IdUsuario
                               {$where}
                               ORDER BY v.id_venta DESC";
 

@@ -27,10 +27,16 @@ function mostrarValor($valor)
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../../public/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../../public/bootstrap/styles/style.css">
+
     <title>Listado de productos</title>
 </head>
 <body>
     <div class="container-fluid mt-5 mb-5 px-4">
+        <?php
+            include __DIR__ . '/../_partials/menu.php';
+        ?> 
+           
         <div class="d-flex justify-content-between align-align-items-center mb-3">
             <h3>Administracion de productos</h3>
             <a href="crear.php" class="btn btn-primary">Nuevo producto</a>
