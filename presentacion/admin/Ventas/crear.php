@@ -34,9 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'descuento_id' => $_POST['descuento_id'] ?? null
         ];
         
-        echo '<pre>';
-        echo var_dump($datos);
-        echo '</pre>';
 
     if (!empty($_POST['producto_id'])) {
         foreach ($_POST['producto_id'] as $i => $id) {
@@ -161,11 +158,10 @@ function aplanarErrores($errores)
                 <div class="mb-3">
                     <div class="col-md-6">
                         <label for="descuento_id" class="form-label">Descuento </label>
-                        <select name="descuento_id" id="descuento_select" class="form-control">
+                        <select name="descuento_id" id="descuento_select" class="form-control" onchange="subtotales(document.querySelector('#cuerpoProductos'))">
                             <option value="">elije un descuento</option>
                             <?php foreach($descuentos as $descuento): ?>
                                 <option 
-                                    data-descuento="<?php echo $descuento['descuento']; ?>"
                                     value="<?php echo $descuento['id_descuento']; ?>">
                                     <?php echo "{$descuento['descripcion']} - {$descuento['descuento']}%"; ?>
                                 </option>
@@ -173,7 +169,13 @@ function aplanarErrores($errores)
                         </select>
                     </div>
                 </div>
-
+                <datalist id="descuento-list">
+                    <?php foreach($descuentos as $descuento): ?>
+                        <option 
+                            data-descuento="<?php echo $descuento['descuento']; ?>"
+                            value="<?php echo $descuento['id_descuento']; ?>">
+                    <?php endforeach; ?>
+                </datalist>
 
                <!--PRODUCTOS-->
 <hr>
@@ -181,6 +183,7 @@ function aplanarErrores($errores)
 <table class="table table-bordered" id="tablaProductos">
     <thead class="table-light">
         <tr>
+            <th>Codigo</th>
             <th>Producto</th>
             <th>Precio</th>
             <th>Marca</th>
@@ -205,11 +208,15 @@ function aplanarErrores($errores)
                         <option 
                         value="<?php echo $producto['id_producto']; ?>"
                         data-precio="<?php echo $producto['precio']; ?>"
-                        data-nombre-producto="<?php echo $producto['nombre_producto']; ?>"
+                        data-nombre="<?php echo $producto['nombre_producto']; ?>"
                         data-marca="<?php echo $producto['marca']; ?>"
                         >
                     <?php endforeach; ?>
                 </datalist>
+            </td>
+            <td>
+                <input style="pointer-events: none;" type="text" 
+                    class="form-control producto" readonly>
             </td>
             <td>
                 <input style="pointer-events: none;" type="number" name="precio[]"
@@ -220,7 +227,7 @@ function aplanarErrores($errores)
                     class="form-control marca" >
             </td>
             <td>
-                <input onchange="onChangeCantidad(this)" type="number" name="cantidad[]" value="1" class="form-control cantidad" min="1">
+                <input onchange="onChangeCantidad(this)" type="number" name="cantidad[]" value="1" min="1" max="<?php echo $producto['stock']; ?>" class="form-control cantidad" min="1">
             </td>
             <td>
                 <button onclick="removeMySelf(this)" type="button" class="btn btn-danger btn-sm btnEliminar">X</button>
@@ -243,7 +250,7 @@ function aplanarErrores($errores)
                             </tr>
                             <tr>
                                 <th>DESCUENTO</th>
-                                <td id="mostrardDescuento">$0.00</td>
+                                <td id="mostrarDescuento">$0.00</td>
                             </tr>
                             <tr>
                                 <th>Total</th>
@@ -280,6 +287,10 @@ function aplanarErrores($errores)
                     name="producto_id[]" 
                     onchange="onChangeProductos(this)"
                     >
+                </td>
+                <td>
+                    <input style="pointer-events: none;" type="text" 
+                        class="form-control producto" readonly>
                 </td>
                 <td>
                     <input style="pointer-events: none;" type="number" name="precio[]"
@@ -328,12 +339,17 @@ function aplanarErrores($errores)
         const idProducto = target.value;
         const producto = dataListProductos.querySelector(`[value="${idProducto}"]`)
         const precio = producto.getAttribute('data-precio');
+        const nombreProducto = producto.getAttribute('data-nombre');
         const marca = producto.getAttribute('data-marca');
         const tr = target.closest('tr');
 
         const fieldPrecio = tr.querySelector('.precio');
         fieldPrecio.value = precio/100;
         fieldPrecio.setAttribute('data-precio', precio);
+        const fieldNombreProducto = tr.querySelector('.producto');
+        fieldNombreProducto.value = nombreProducto;
+
+        fieldPrecio.setAttribute('data-precio-acumulado', precio);
         tr.querySelector('.marca').value = marca;
 
         canAdd = true;
@@ -359,30 +375,41 @@ function aplanarErrores($errores)
         const precio = producto.getAttribute('data-precio');
         const fieldPrecio = tr.querySelector('.precio');
         fieldPrecio.value = (precio * target.value)/100;
+        fieldPrecio.setAttribute('data-precio-acumulado', precio * target.value);
         subtotales(target.closest('tbody'))
     }
 
     const subtotalProyeccion = document.querySelector('#mostrarSubtotal');
     const ivaProyeccion = document.querySelector('#mostrarIva');
-    const descuento = document.querySelector('#mostraDescuento');
+    const descuentoProyectar = document.querySelector('#mostrarDescuento');
     const mostrarTotal = document.querySelector('#mostrarTotal');
 
-    const descuentoSelect = documento.querySelector('#descuento_select');
+    const descuentoSelect = document.querySelector('#descuento_select');
 
+    const descuentoList = document.querySelector('#descuento-list');
+    
     const subtotales = tbody => {
         const subtotalesField = [...tbody.querySelectorAll('.precio')];
+        subtotalesField.forEach(
+            e => console.log(e.value)
+        )
         let subtotal = subtotalesField.reduce(
-            (acumulador, numero) => acumulador + parseInt(numero.getAttribute('data-precio')),
+            (acumulador, numero) => acumulador + parseInt(numero.getAttribute('data-precio-acumulado')),
             0
         )
-        console.log(subtotal)
+
         subtotalProyeccion.textContent = (subtotal / 100).toFixed(2);
         const iva = (0.13 * subtotal);
         const total = ((subtotal + iva)/100).toFixed(2);
 
-        ivaProyeccion.textContent = (iva/100).toFixed(2);
-        descuento.textContext = descuentoSelect.value;
-        mostrarTotal.textContent = total;
+        ivaProyeccion.textContent = `$${(iva/100).toFixed(2)}`;
+        
+        let descuento = descuentoList.querySelector(`[value="${descuentoSelect.value}"]`)?.getAttribute('data-descuento');
+        if(!descuento) descuento = 0;
+        const totalDescuento = ((descuento / 100) * total).toFixed(2);
+        descuentoProyectar.textContent = `$${totalDescuento}`;
+        
+        mostrarTotal.textContent = `$${total - totalDescuento}`;
     }
 
 </script>

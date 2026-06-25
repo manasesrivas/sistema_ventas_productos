@@ -122,10 +122,10 @@ function mostrarValor($valor)
                             <td><?php echo mostrarValor($venta['id_venta']); ?></td>
                             <td><?php echo mostrarValor($venta['fecha_venta']); ?></td>
                             <td><?php echo mostrarValor($venta['nombre_cliente']); ?></td>
-                            <td><?php echo mostrarValor($venta['nombre_usuario']); ?></td>
-                            <td>$<?php echo mostrarValor(number_format($venta['total'], 2)); ?></td>
+                            <td><?php echo mostrarValor($venta['NombreCompleto']); ?></td>
+                            <td>$<?php echo mostrarValor(number_format($venta['total']/100, 2)); ?></td>
                             <td>
-                                <?php if ($venta['estado'] === 'activa'): ?>
+                                <?php if ($venta['estado'] === 'activo'): ?>
                                     <span class="badge bg-success">Activa</span>
                                 <?php else: ?>
                                     <span class="badge bg-danger">Anulada</span>
