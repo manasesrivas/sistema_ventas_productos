@@ -16,7 +16,7 @@ class MarcaDatos
     {
         $this->conexion->query = "SELECT id_marca, marca, estado
                                   FROM marcas
-                                  WHERE estado = 0
+                                  WHERE estado = 1
                                   ORDER BY marca ASC";
         return $this->conexion->get_records();
     }

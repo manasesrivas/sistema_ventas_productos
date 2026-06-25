@@ -111,13 +111,13 @@ function mostrarValor($valor)
                                 </button>
 
                                 <?php if ((int)$marca['estado'] === 1): ?>
-                                    <a href="index.php?accion=desactivar&id=<?php echo mostrarValor($marca['id_marca']); ?>"
+                                    <a href="listar.php?accion=desactivar&id=<?php echo mostrarValor($marca['id_marca']); ?>"
                                        class="btn btn-danger btn-sm"
                                        onclick="return confirm('¿Desactivar esta marca?');">
                                         Desactivar
                                     </a>
                                 <?php else: ?>
-                                    <a href="index.php?accion=activar&id=<?php echo mostrarValor($marca['id_marca']); ?>"
+                                    <a href="listar.php?accion=activar&id=<?php echo mostrarValor($marca['id_marca']); ?>"
                                        class="btn btn-success btn-sm">
                                         Activar
                                     </a>
@@ -134,7 +134,7 @@ function mostrarValor($valor)
 </div>
 
 <!--MODAL CREAR/EDITAR-->
-<div class="modal fade" id="modalMarca" tabindex="-1">
+<div class="modal fade" id="modalMarca" tablistar="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
@@ -142,7 +142,7 @@ function mostrarValor($valor)
                 <button type="button" class="btn-close btn-close-white"
                         data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="index.php">
+            <form method="POST" action="listar.php">
                 <div class="modal-body">
                     <input type="hidden" name="accion" id="modalAccion" value="crear">
                     <input type="hidden" name="id_marca" id="modalId" value="">
