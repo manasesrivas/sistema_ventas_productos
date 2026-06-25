@@ -132,8 +132,9 @@ function mostrarValor($valor){
                     </div>
                 <?php endif; ?>
                 <form action="editar.php?id=<?php echo mostrarValor($producto['id_producto']); ?>" enctype="multipart/form-data" method="POST">
+                    
                     <input type="hidden" name="id_producto" value="<?php echo mostrarValor($producto['id_producto']); ?>">
-                    <?php echo $producto['id_producto']; ?>
+                    
                     <div class="mb-3">
                         <label class="form-label">Nombre del producto</label>
                         <input type="text" name="NombreProducto" class="form-control"

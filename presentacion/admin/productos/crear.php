@@ -1,17 +1,15 @@
 <?php
 
 require_once __DIR__ . '/../../../negocio/productoNegocio.php';
-// require_once __DIR__ . '/../../../negocio/CategoriaNegocio.php';
-// require_once __DIR__ . '/../../../negocio/MarcaNegocio.php';
+require_once __DIR__ . '/../../../negocio/CategoriaNegocio.php';
+require_once __DIR__ . '/../../../negocio/MarcaNegocio.php';
 
 $productoNegocio = new ProductoNegocio();
-// $categoriaNegocio = new CategoriaNegocio();
-// $marcaNegocio = new MarcaNegocio();
+$categoriaNegocio = new CategoriaNegocio();
+$marcaNegocio = new MarcaNegocio();
 
-
-// $categorias = $categoriaNegocio->listarCategorias();
-// $marcas = $marcaNegocio->listarMarcas();
-
+$categorias = $categoriaNegocio->listarCategorias();
+$marcas = $marcaNegocio->listarMarcas();
 
 $errores = [];
 
@@ -142,24 +140,29 @@ function procesarImagen($archivo, &$errores)
 
                     <div class="mb-3">
                         <label class="form-label">Nombre del producto</label>
-                        <input type="text" name="NombreProducto" class="form-control">
+                        <input type="text" name="NombreProducto" class="form-control"
+                        value="<?php echo @$_POST['NombreProducto']; ?>"
+                        >
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Modelo</label>
-                        <input type="text" name="Modelo" class="form-control">
+                        <input type="text" name="Modelo" class="form-control"
+                        value="<?php echo @$_POST['Modelo']; ?>"
+                        >
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Categoría</label>
                         <select name="IdCategoria" class="form-select">
                             <option value="">Seleccione una categoría</option>
-                            <option value="1" selected>Teclados</option>
-                            <?php // foreach ($categorias as $categoria): ?>
-                                <option value="<?php // echo mostrarValor($categoria['IdCategoria']); ?>">
-                                    <?php // echo mostrarValor($categoria['NombreCategoria']); ?>
+                            <?php foreach ($categorias as $categoria): ?>
+                                <option 
+                                    <?php echo ($categoria['id_categoria'] === @$_POST['IdCategoria']) ? 'selected': '';?> 
+                                    value="<?php echo mostrarValor($categoria['id_categoria']); ?>">
+                                    <?php echo mostrarValor($categoria['categoria']); ?>
                                 </option>
-                            <?php // endforeach; ?>
+                            <?php endforeach; ?>
                         </select>
                     </div>
 
@@ -167,28 +170,33 @@ function procesarImagen($archivo, &$errores)
                         <label class="form-label">Marca</label>
                         <select name="IdMarca" class="form-select">
                             <option value="">Seleccione una marca</option>
-                            <option value="1" selected>HP</option>
-                            <?php //foreach ($marcas as $marca): ?>
-                                <option value="<?php //echo mostrarValor($marca['IdMarca']); ?>">
-                                    <?php //echo mostrarValor($marca['NombreMarca']); ?>
+                            <?php foreach ($marcas as $marca): ?>
+                                <option 
+                                <?php echo ($marca['id_marca'] === @$_POST['IdMarca']) ? 'selected': '';?>
+                                value="<?php echo mostrarValor($marca['id_marca']); ?>">
+                                    <?php echo mostrarValor($marca['marca']); ?>
                                 </option>
-                            <?php //endforeach; ?>
+                            <?php endforeach; ?>
                         </select>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Precio de venta</label>
-                        <input type="number" step="0.01" min="0" name="PrecioVenta" class="form-control">
+                        <input type="number" step="0.01" min="0" name="PrecioVenta" class="form-control"
+                        value="<?php echo @$_POST['PrecioVenta']; ?>"
+                        >
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Existencias</label>
-                        <input type="number" min="0" name="Existencias" class="form-control">
+                        <input type="number" min="0" name="Existencias" class="form-control"
+                        value="<?php echo @$_POST['Existencias']; ?>"
+                        >
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Características</label>
-                        <textarea name="Caracteristicas" class="form-control" rows="4"></textarea>
+                        <textarea name="Caracteristicas" class="form-control" rows="4"><?php echo @$_POST['Caracteristicas']; ?></textarea>
                     </div>
 
                     <div class="mb-3">
